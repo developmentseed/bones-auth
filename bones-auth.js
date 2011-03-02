@@ -16,7 +16,11 @@ if (typeof module !== 'undefined') {
 var Auth = Backbone.Model.extend({
     authUrl: '/api/Authenticate',
     authenticate: function(params, options) {
-        // @TODO grab CSRF protection cookie info here and merge into `params`.
+        // Grab CSRF protection cookie and merge into `params`.
+        if (Backbone.csrf) {
+            var csrf = Backbone.csrf();
+            (csrf) && (params['bones.csrf'] = csrf);
+        }
         // Make the request.
         var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl;
         $.ajax({
@@ -73,6 +77,12 @@ var AuthView = Backbone.View.extend({
     // Factory function that returns a route middleware that should be used at an
     // Auth model `authUrl` endpoint.
     authenticate: function(privateKey, Model) {
+        var crypto = require('crypto');
+        var hash = function(string) {
+            return crypto.createHmac('sha256', privateKey)
+                .update(string)
+                .digest('hex');
+        };
         // Override sync for Auth model. Allows password to never be read
         // directly and `sha512` hashed when saved to persistence.
         Auth.prototype.sync = function(method, model, success, error) {
@@ -102,12 +112,7 @@ var AuthView = Backbone.View.extend({
                     Backbone.sync(method, model, authWriteSuccess, authWriteError);
                 };
                 if (model.get('password')) {
-                    authWrite({
-                        password: require('crypto')
-                            .createHmac('sha512', privateKey)
-                            .update(model.get('password'))
-                            .digest('hex')
-                    });
+                    authWrite({ password: hash(model.get('password')) });
                 } else {
                     Backbone.sync('read', model, authWrite, authWrite);
                 }
@@ -122,11 +127,7 @@ var AuthView = Backbone.View.extend({
             var model = new Model({id: req.body.id});
             model.fetch({
                 success: function() {
-                    var hmac = require('crypto')
-                        .createHmac('sha512', privateKey)
-                        .update(req.body.password)
-                        .digest('hex');
-                    if (model.get('password') === hmac) {
+                    if (model.get('password') === hash(req.body.password)) {
                         req.session.regenerate(function() {
                             req.session.user = model;
                             res.send({}, 200);
