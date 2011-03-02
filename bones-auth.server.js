@@ -15,10 +15,16 @@ module.exports = require('./bones-auth');
 // -------------------------
 // Factory function that returns a route middleware that should be used at an
 // Auth model `authUrl` endpoint.
-module.exports.authenticate = function(privateKey, Model) {
+//
+// - `secret`: A stable, secret key that is only accessible to the server. The
+//   secret key is used to hash Auth model passwords when saving to persistence
+//   and to authenticate incoming authentication requests against saved values.
+// - `Model`: Optional. Model class to use for authentication. Supply your own
+//   custom Auth model, or default to `Auth`.
+module.exports.authenticate = function(secret, Model) {
     var hash = function(string) {
         return crypto
-            .createHmac('sha256', privateKey)
+            .createHmac('sha256', secret)
             .update(string)
             .digest('hex');
     };
@@ -69,6 +75,7 @@ module.exports.authenticate = function(privateKey, Model) {
     AuthList.prototype.parse = function(resp) {
         return _.map(resp, this.model.prototype.parse);
     };
+    // Define the route middleware.
     Model = Model || Auth;
     return function(req, res, next) {
         switch (req.body.method) {
