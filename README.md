@@ -6,7 +6,7 @@ session-based user login with Backbone.js, Bones and Express.
 
 ### Tested with
 
-- developmentseed bones master
+- developmentseed bones 0.0.2
 - documentcloud backbone 0.3.3
 - visionmedia express 1.0.7
 
