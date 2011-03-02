@@ -15,14 +15,26 @@ if (typeof module !== 'undefined') {
 // Model. Base class for models that may authenticate.
 var Auth = Backbone.Model.extend({
     authUrl: '/api/Authenticate',
-    authenticate: function(params, options) {
+    authenticated: false,
+    authenticate: function(method, params, options) {
+        if (_(['load', 'login', 'logout']).indexOf(method) === -1) {
+            throw new Error('Auth method must be specified.');
+        }
+        // Default options object.
+        options = options || {};
+        options.success = options.success || function() {};
+        options.error = options.error || function() {};
+        // Default params object.
+        params = params || {};
+        params.method = params.method || method;
         // Grab CSRF protection cookie and merge into `params`.
         if (Backbone.csrf) {
             var csrf = Backbone.csrf();
             (csrf) && (params['bones.csrf'] = csrf);
         }
         // Make the request.
-        var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl;
+        var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl,
+            that = this;
         $.ajax({
             url: url,
             type: 'POST',
@@ -30,7 +42,13 @@ var Auth = Backbone.Model.extend({
             data: JSON.stringify(params),
             dataType: 'json',
             processData: false,
-            success: options.success,
+            success: function(data) {
+                !_.isEmpty(data) && that.set(data);
+                that.authenticated = (method === 'load' || method === 'login');
+                that.trigger('auth', that);
+                that.trigger('auth:' + method, that);
+                options.success(data);
+            },
             error: options.error
         });
     }
@@ -38,32 +56,33 @@ var Auth = Backbone.Model.extend({
 
 // AuthView
 // --------
-// View. Basic login form.
+// View. Example login form.
 var AuthView = Backbone.View.extend({
     id: 'AuthView',
     tagName: 'form',
     initialize: function() {
-        _.bindAll(this, 'authenticate');
+        _.bindAll(this, 'render', 'auth');
+        this.model.bind('auth', this.render);
         this.render();
     },
     render: function() {
-        $(this.el).html(this.template('AuthView'));
+        $(this.el).html(this.template('AuthView', this.model));
         return this;
     },
     events: {
-        'click input[type=button]': 'authenticate'
+        'click input[type=button]': 'auth'
     },
-    authenticate: function() {
-        this.model.authenticate(
-            {
+    auth: function() {
+        if (this.model.authenticated) {
+            this.model.authenticate('logout', {});
+        } else {
+            this.model.authenticate('login', {
                 id: this.$('input[name=username]').val(),
                 password: this.$('input[name=password]').val()
-            },
-            {
-                success: function() {},
-                error: function() {}
-            }
-        );
+            });
+        }
+        this.$('input[name=username]').val('');
+        this.$('input[name=password]').val('');
         return false;
     }
 });
@@ -83,17 +102,19 @@ var AuthView = Backbone.View.extend({
                 .update(string)
                 .digest('hex');
         };
-        // Override sync for Auth model. Allows password to never be read
-        // directly and `sha512` hashed when saved to persistence.
+        // Override parse for Auth model. Filters out passwords server side
+        // such that they are never returned to the client. The `password`
+        // property is preserved on the original response object enabling
+        // authentication code to access the response directly.
+        Auth.prototype.parse = function(resp) {
+            var filtered = _.clone(resp);
+            !_.isUndefined(filtered.password) && (delete filtered.password);
+            return filtered;
+        };
+        // Override sync for Auth model. Hashes passwords when saved to
+        // persistence.
         Auth.prototype.sync = function(method, model, success, error) {
             switch (method) {
-            case 'read':
-                var authRead = function(data) {
-                    _.isUndefined(data.password) && (delete data.password);
-                    success(data);
-                };
-                Backbone.sync(method, model, authRead, error);
-                break;
             case 'create':
             case 'update':
                 var authWriteSuccess = function(resp) {
@@ -124,22 +145,44 @@ var AuthView = Backbone.View.extend({
         };
         Model = Model || Auth;
         return function(req, res, next) {
-            var model = new Model({id: req.body.id});
-            model.fetch({
-                success: function() {
-                    if (model.get('password') === hash(req.body.password)) {
-                        req.session.regenerate(function() {
-                            req.session.user = model;
-                            res.send({}, 200);
-                        });
-                    } else {
-                        res.send('Access denied.', 403);
-                    }
-                },
-                error: function() {
+            switch (req.body.method) {
+            case 'load':
+                if (req.session.user) {
+                    res.send(req.session.user.toJSON());
+                } else {
                     res.send('Access denied.', 403);
                 }
-            });
+                break;
+            case 'logout':
+                if (req.session && req.session.user) {
+                    delete req.session.user;
+                    res.send({}, 200);
+                } else {
+                    res.send('Access denied.', 403);
+                }
+                break;
+            case 'login':
+                var model = new Model({id: req.body.id});
+                model.fetch({
+                    success: function(model, resp) {
+                        if (resp.password === hash(req.body.password)) {
+                            req.session.regenerate(function() {
+                                req.session.user = model;
+                                res.send(model.toJSON(), 200);
+                            });
+                        } else {
+                            res.send('Access denied.', 403);
+                        }
+                    },
+                    error: function() {
+                        res.send('Access denied.', 403);
+                    }
+                });
+                break;
+            default:
+                res.send('Access denied.', 403);
+                break;
+            }
         };
     }
 });

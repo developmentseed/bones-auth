@@ -1,3 +1,9 @@
-<label for='username'>Username</label><input type='text' name='username' />
-<label for='password'>Password</label><input type='password' name='password' />
-<input type='button' value='Login' />
+{{#authenticated}}
+  <div class='message'>Logged in as {{id}}</div>
+  <input type='button' value='Logout' />
+{{/authenticated}}
+{{^authenticated}}
+  <label for='username'>Username</label><input type='text' name='username' />
+  <label for='password'>Password</label><input type='password' name='password' />
+  <input type='button' value='Login' />
+{{/authenticated}}
