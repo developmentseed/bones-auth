@@ -146,6 +146,7 @@ var AuthView = Backbone.View.extend({
                     );
                     Backbone.sync(method, model, authWriteSuccess, authWriteError);
                 };
+                if (model.get('passwordConfirm')) model.unset('passwordConfirm');
                 if (model.get('password')) {
                     authWrite({ password: hash(model.get('password')) });
                 } else {
