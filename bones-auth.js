@@ -27,6 +27,12 @@ var Auth = Backbone.Model.extend({
         // Default params object.
         params = params || {};
         params.method = params.method || method;
+        // Validate params.
+        var error = this.validate && this.validate(params);
+        if (error) {
+            options.error(this, error);
+            return false;
+        }
         // Grab CSRF protection cookie and merge into `params`.
         if (Backbone.csrf) {
             var csrf = Backbone.csrf();
