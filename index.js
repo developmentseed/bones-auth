@@ -1,1 +1,2 @@
-module.exports = require('./bones-auth');
+module.exports = require('./bones-auth.server');
+
