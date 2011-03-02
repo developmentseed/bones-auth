@@ -55,7 +55,9 @@ var Auth = Backbone.Model.extend({
                 that.trigger('auth:' + method, that);
                 options.success(data);
             },
-            error: options.error
+            error: function(data) {
+                options.error(that, data);
+            }
         });
     }
 });
