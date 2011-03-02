@@ -60,6 +60,13 @@ var Auth = Backbone.Model.extend({
     }
 });
 
+// AuthList
+// --------
+// Base class for Auth-based collections. See server-side overrides below.
+var AuthList = Backbone.Collection.extend({
+    model: Auth
+});
+
 // AuthView
 // --------
 // View. Example login form.
@@ -96,6 +103,7 @@ var AuthView = Backbone.View.extend({
 // Server-side.
 (typeof module !== 'undefined') && (module.exports = {
     Auth: Auth,
+    AuthList: AuthList,
     AuthView: AuthView,
     // Authentication middleware
     // -------------------------
@@ -148,6 +156,11 @@ var AuthView = Backbone.View.extend({
                 Backbone.sync(method, model, success, error);
                 break;
             }
+        };
+        // Override parse for AuthList collection. Calls `parse` from above on
+        // each model, stripping private attributes.
+        AuthList.prototype.parse = function(resp) {
+            return _.map(resp, this.model.prototype.parse);
         };
         Model = Model || Auth;
         return function(req, res, next) {
