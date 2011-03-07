@@ -1,5 +1,4 @@
-// Server/client-side wrapper.
-if (typeof module !== 'undefined') {
+if (typeof process !== 'undefined') {
     _ = require('underscore')._,
     Backbone = require('backbone');
 }
