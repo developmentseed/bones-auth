@@ -1,12 +1,17 @@
 if (typeof process !== 'undefined') {
     _ = require('underscore')._,
-    Backbone = require('backbone');
+    Backbone = require('backbone'),
+    Bones = require('bones');
 }
+
+var Bones = Bones || {};
+Bones.models = Bones.models || {};
+Bones.views = Bones.views || {};
 
 // Auth
 // ----
 // Model. Base class for models that may authenticate.
-var Auth = Backbone.Model.extend({
+Bones.models.Auth = Backbone.Model.extend({
     // Authentication endpoint URL. Override this in base classes to use a
     // different path for `authenticate` requests.
     authUrl: '/api/Authenticate',
@@ -80,14 +85,14 @@ var Auth = Backbone.Model.extend({
 // AuthList
 // --------
 // Base class for Auth-based collections. See server-side overrides below.
-var AuthList = Backbone.Collection.extend({
-    model: Auth
+Bones.models.AuthList = Backbone.Collection.extend({
+    model: Bones.models.Auth
 });
 
 // AuthView
 // --------
 // View. Example login form.
-var AuthView = Backbone.View.extend({
+Bones.views.AuthView = Backbone.View.extend({
     id: 'AuthView',
     tagName: 'form',
     initialize: function() {
@@ -118,8 +123,12 @@ var AuthView = Backbone.View.extend({
 });
 
 (typeof module !== 'undefined') && (module.exports = {
-    Auth: Auth,
-    AuthList: AuthList,
-    AuthView: AuthView
+    models: {
+        Auth: Bones.models.Auth,
+        AuthList: Bones.models.AuthList
+    },
+    views: {
+        AuthView: Bones.views.AuthView
+    }
 });
 

@@ -1,8 +1,8 @@
 var fs = require('fs'),
     crypto = require('crypto'),
-    Auth = require('./bones-auth').Auth,
-    AuthList = require('./bones-auth').AuthList,
-    Bones = require('bones');
+    Bones = require('bones'),
+    Auth = require('./bones-auth').models.Auth,
+    AuthList = require('./bones-auth').models.AuthList;
 
 // Load AuthView template into Bones templates.
 Bones.templates['AuthView'] = Bones.templates['AuthView'] ||
