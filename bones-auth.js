@@ -95,39 +95,6 @@ Bones.models.AuthList = Backbone.Collection.extend({
     model: Bones.models.Auth
 });
 
-// AuthView
-// --------
-// View. Example login form.
-Bones.views.AuthView = Backbone.View.extend({
-    id: 'AuthView',
-    tagName: 'form',
-    initialize: function() {
-        _.bindAll(this, 'render', 'auth');
-        this.model.bind('auth', this.render);
-        this.render();
-    },
-    render: function() {
-        $(this.el).html(this.template('AuthView', this.model));
-        return this;
-    },
-    events: {
-        'click input[type=button]': 'auth'
-    },
-    auth: function() {
-        if (this.model.authenticated) {
-            this.model.authenticate('logout', {});
-        } else {
-            this.model.authenticate('login', {
-                id: this.$('input[name=username]').val(),
-                password: this.$('input[name=password]').val()
-            });
-        }
-        this.$('input[name=username]').val('');
-        this.$('input[name=password]').val('');
-        return false;
-    }
-});
-
 // User
 // ----
 // Basic user model. If Document model is present, uses JSON schema and
@@ -293,6 +260,41 @@ Bones.views.AdminTableRow && (Bones.views.AdminTableRowUser = Bones.views.AdminT
     }
 }));
 
+// AdminLogin
+// ----------
+// View. Login form that integrates with `bones-admin` toolbar as an auth view.
+Bones.views.AdminLogin = Backbone.View.extend({
+    admin: null,
+    context: null,
+    events: {
+        'click input[type=submit]': 'auth'
+    },
+    initialize: function(options) {
+        _.bindAll(this, 'render', 'attach', 'auth');
+        options = options || {};
+        this.admin = options.admin || null;
+        this.context = options.context || $('#bonesAdminToolbar > .auth');
+        this.render().trigger('attach');
+    },
+    render: function() {
+        $(this.el).html(this.template('AdminFormLogin', this.model));
+        return this;
+    },
+    attach: function () {
+        this.context.prepend(this.el);
+        return this;
+    },
+    auth: function() {
+        this.model.authenticate('login', {
+            id: this.$('input[name=username]').val(),
+            password: this.$('input[name=password]').val()
+        }, { error: this.error });
+        this.$('input[name=username], input[name=password]').val('');
+        return false;
+    }
+});
+
+
 (typeof module !== 'undefined') && (module.exports = {
     models: {
         Auth: Bones.models.Auth,
@@ -301,10 +303,10 @@ Bones.views.AdminTableRow && (Bones.views.AdminTableRowUser = Bones.views.AdminT
         Users: Bones.models.Users
     },
     views: {
-        AuthView: Bones.views.AuthView,
         AdminDropdownUser: Bones.views.AdminDropdownUser,
         AdminPopupUser: Bones.views.AdminPopupUser,
-        AdminTableRowUser: Bones.views.AdminTableRowUser
+        AdminTableRowUser: Bones.views.AdminTableRowUser,
+        AdminLogin: Bones.views.AdminLogin
     }
 });
 

@@ -1,6 +1,6 @@
 Bones Auth
 ----------
-Provides base `Auth`, `AuthList`, and `AuthView` (model, collection, view)
+Provides base `Auth` and `AuthList` (model, collection) base
 classes and `authenticate` Connect middleware for implementing basic
 session-based user login with Backbone.js, Bones and Express.
 
@@ -32,10 +32,6 @@ be "authenticated". See the `User` model for an example.
 
 Abstract collection class. Extend it for use with collections that contain
 model classes inheriting from `Auth`.
-
-#### `AuthView`
-
-Basic user login form view. Provided as an example form.
 
 #### `authenticate` route middleware
 

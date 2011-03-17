@@ -5,9 +5,9 @@ var fs = require('fs'),
     Auth = require('./bones-auth').models.Auth,
     AuthList = require('./bones-auth').models.AuthList,
     templates = [
+        'AdminFormLogin',
         'AdminFormUser',
-        'AdminTableRowUser',
-        'AuthView'
+        'AdminTableRowUser'
     ];
 
 // Load templates. Blocking at require time.
