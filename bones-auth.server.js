@@ -1,12 +1,20 @@
 var fs = require('fs'),
+    path = require('path'),
     crypto = require('crypto'),
     Bones = require('bones'),
     Auth = require('./bones-auth').models.Auth,
-    AuthList = require('./bones-auth').models.AuthList;
+    AuthList = require('./bones-auth').models.AuthList,
+    templates = [
+        'AdminFormUser',
+        'AdminTableRowUser',
+        'AuthView'
+    ];
 
-// Load AuthView template into Bones templates.
-Bones.templates['AuthView'] = Bones.templates['AuthView'] ||
-    fs.readFileSync(__dirname + '/AuthView.hbs', 'utf-8');
+// Load templates. Blocking at require time.
+templates.forEach(function(template) {
+    Bones.templates[template] = Bones.templates[template] ||
+        fs.readFileSync(path.join(__dirname, 'templates', template + '.hbs'), 'utf-8');
+});
 
 // Pass through require of bones-auth. Overrides for server-side context below.
 module.exports = require('./bones-auth');

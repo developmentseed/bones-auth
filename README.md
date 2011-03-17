@@ -4,6 +4,10 @@ Provides base `Auth`, `AuthList`, and `AuthView` (model, collection, view)
 classes and `authenticate` Connect middleware for implementing basic
 session-based user login with Backbone.js, Bones and Express.
 
+A basic `User` model that extends `Auth` is provided as an example and
+starting point. Integration with `bones-admin` through administrative views
+is also available.
+
 ### Tested with
 
 - developmentseed bones 0.0.2
@@ -22,22 +26,7 @@ session-based user login with Backbone.js, Bones and Express.
 #### `Auth`
 
 Abstract model class. Extend it with your own model to create a model which can
-be "authenticated". Example:
-
-    var User = Auth.extend({
-        url: function() {
-            return '/api/User/' + this.id;
-        }
-    });
-    var user = new User();
-    user.authenticate('login', {id: 'john', password: 'doe'}, {
-        success: function(model, resp) {
-            alert('login successful');
-        },
-        error: function(model, resp) {
-            alert('login failed');
-        }
-    });
+be "authenticated". See the `User` model for an example.
 
 #### `AuthList`
 

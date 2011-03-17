@@ -1,0 +1,28 @@
+<form action='/' method='post'>
+{{#id}}
+<div>
+    <label>Username</label>
+    <strong>{{.}}</strong>
+</div>
+{{/id}}
+{{^id}}
+<div>
+    <label for='id'>Username</label>
+    <input type='text' name='id' />
+</div>
+{{/id}}
+<div>
+    <div class='inline'>
+        <label for='password'>Password</label>
+        <input type='password' name='password' />
+    </div>
+    <div class='inline'>
+        <label for='passwordConfirm'>Confirm</label>
+        <input type='password' name='passwordConfirm' />
+    </div>
+</div>
+<div class='buttons'>
+    {{#id}}<input type='submit' value='Change password' />{{/id}}
+    {{^id}}<input type='submit' value='Create user' />{{/id}}
+</div>
+</form>
