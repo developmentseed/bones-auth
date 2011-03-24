@@ -33,29 +33,28 @@ be "authenticated". See the `User` model for an example.
 Abstract collection class. Extend it for use with collections that contain
 model classes inheriting from `Auth`.
 
-#### `authenticate` route middleware
+#### `authenticate` middleware
 
-Require `authenticate` connect middleware and add it as route middleware for
-POST requests at `authUrl` of authenticating models.
+Require `authenticate` connect middleware and add it as a middleware for
+authenticating models. Automatically adds and manages the Connect session
+middleware -- session cookies will only be sent and active when authenticating
+and/or an authenticated session already exists. Allows for sane proxy caching.
 
     var express = require('express'),
         server = express.createServer(),
         secret = 'MySecretKey';
 
-    // Middleware for sessions.
-    ui_server.use(express.bodyDecoder());
-    ui_server.use(express.cookieDecoder());
-    ui_server.use(express.session({
-        secret: secret,
-        store: new express.session.MemoryStore({ reapInterval: -1 })
-    }));
+    // Express middleware.
+    server.use(express.bodyDecoder());
+    server.use(express.cookieDecoder());
 
-    // Pass secret key to Bones.
+    // Pass secret key to Bones for CSRF protection.
     require('bones').Bones(server, { secret: secret });
 
     // Require bones-auth to use authenticate middleware.
+    // Handles authentication requests to `/api/Authenticate`.
     var authenticate = require('bones-auth').authenticate;
-    app.post('/api/Authenticate', authenticate(secret));
+    server.use(authenticate({ secret: secret });
 
 #### Authors
 

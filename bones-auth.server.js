@@ -1,6 +1,8 @@
-var fs = require('fs'),
+var _ = require('underscore')._,
+    fs = require('fs'),
     path = require('path'),
     crypto = require('crypto'),
+    session = require('connect').middleware.session,
     Bones = require('bones'),
     Auth = require('./bones-auth').models.Auth,
     AuthList = require('./bones-auth').models.AuthList,
@@ -19,23 +21,9 @@ templates.forEach(function(template) {
 // Pass through require of bones-auth. Overrides for server-side context below.
 module.exports = require('./bones-auth');
 
-// Authentication middleware
-// -------------------------
-// Factory function that returns a route middleware that should be used at an
-// Auth model `authUrl` endpoint.
-//
-// - `secret`: A stable, secret key that is only accessible to the server. The
-//   secret key is used to hash Auth model passwords when saving to persistence
-//   and to authenticate incoming authentication requests against saved values.
-// - `Model`: Optional. Model class to use for authentication. Supply your own
-//   custom Auth model, or default to `Auth`.
-module.exports.authenticate = function(secret, Model) {
-    var hash = function(string) {
-        return crypto
-            .createHmac('sha256', secret)
-            .update(string)
-            .digest('hex');
-    };
+// Apply overrides for server-side context. Requires `hash` function for
+// hashing passwords before storage.
+var applyOverrides = function(hash) {
     // Override parse for Auth model. Filters out passwords server side
     // such that they are never returned to the client. The `password`
     // property is preserved on the original response object enabling
@@ -83,46 +71,117 @@ module.exports.authenticate = function(secret, Model) {
     AuthList.prototype.parse = function(resp) {
         return _.map(resp, this.model.prototype.parse);
     };
-    // Define the route middleware.
-    Model = Model || Auth;
-    return function(req, res, next) {
-        switch (req.body.method) {
-        case 'load':
-            if (req.session.user) {
-                res.send(req.session.user.toJSON());
-            } else {
-                res.send('Access denied.', 403);
-            }
-            break;
-        case 'logout':
-            if (req.session && req.session.user) {
-                delete req.session.user;
-                res.send({}, 200);
-            } else {
-                res.send('Access denied.', 403);
-            }
-            break;
-        case 'login':
-            var model = new Model({id: req.body.id});
-            model.fetch({
-                success: function(model, resp) {
-                    if (resp.password === hash(req.body.password)) {
-                        req.session.regenerate(function() {
-                            req.session.user = model;
-                            res.send(model.toJSON(), 200);
-                        });
-                    } else {
-                        res.send('Access denied.', 403);
-                    }
-                },
-                error: function() {
+};
+
+// Authentication middleware
+// -------------------------
+// Factory function that returns an Express session-based authentication
+// middleware. Automatically adds the Connect session middleware.
+//
+// - `options.secret`: A stable, secret key that is only accessible to the
+//   server. The secret key is used to hash Auth model passwords when saving to
+//   persistence and to authenticate incoming authentication requests against
+//   saved values.
+// - `options.Model`: Optional. Model class to use for authentication. Supply
+//   your own custom Auth model, or default to `Auth`.
+// - `options.store`: Optional. An instance of the session store to use.
+//   Defaults to Connect `session.MemoryStore`.
+// - `options.url`': Optional. The url at which authentication requests should
+//   be accepted. Defaults to `/api/Authenticate`.
+module.exports.authenticate = function(options) {
+    options = options || {};
+    options.secret = options.secret || '';
+    options.Model = options.Model || Auth;
+    options.store = options.store || new session.MemoryStore({ reapInterval: -1 }),
+    options.url = options.url || '/api/Authenticate';
+    options.key = options.key || 'connect.sid';
+
+    // Generate hash function that uses secret key and apply Auth server-side
+    // overrides.
+    var hash = function(string) {
+        return crypto
+            .createHmac('sha256', options.secret)
+            .update(string)
+            .digest('hex');
+    };
+    applyOverrides(hash);
+
+    // Helper for destroying a session. Destroys the session object and also
+    // sends an expired session cookie to the client.
+    var destroySession = function(req, res, options) {
+        req.session.destroy();
+        res.writeHead = function(status, headers) {
+            res.cookie(options.key, '', _.extend(
+                _.clone(options.store.cookie),
+                { expires: new Date(1) }
+            ));
+            return writeHead.call(this, status, this.headers);
+        };
+    }
+
+    var sess = session(options),
+        writeHead = require('http').ServerResponse.prototype.writeHead;
+
+    // Main authentication middleware. Handles load/logout/login operations.
+    var authenticate = function(req, res, next) {
+        // Auth operation.
+        if (req.url === options.url && req.body) {
+            switch (req.body.method) {
+            case 'load':
+                if (req.session.user) {
+                    res.send(req.session.user.toJSON());
+                } else {
                     res.send('Access denied.', 403);
                 }
-            });
-            break;
-        default:
-            res.send('Access denied.', 403);
-            break;
+                break;
+            case 'logout':
+                if (req.session && req.session.user) {
+                    delete req.session.user;
+                    destroySession(req, res, options);
+                    res.send({}, 200);
+                } else {
+                    res.send('Access denied.', 403);
+                }
+                break;
+            case 'login':
+                var model = new options.Model({id: req.body.id});
+                model.fetch({
+                    success: function(model, resp) {
+                        if (resp.password === hash(req.body.password)) {
+                            req.session.regenerate(function() {
+                                req.session.user = model;
+                                res.send(model.toJSON(), 200);
+                            });
+                        } else {
+                            res.send('Access denied.', 403);
+                        }
+                    },
+                    error: function() {
+                        res.send('Access denied.', 403);
+                    }
+                });
+                break;
+            default:
+                res.send('Access denied.', 403);
+                break;
+            }
+        // All other requests -- if there is no user and a session  exists,
+        // destroy it.
+        } else {
+            !req.session.user &&
+                req.cookies[options.key] &&
+                destroySession(req, res, options);
+            next();
+        }
+    };
+
+    // Wrapping middleware - adds session handling selectively: only when a
+    // session is active or at the authentication URL endpoint.
+    return function(req, res, next) {
+        if (options.url === req.url || req.cookies[options.key]) {
+            sess(req, res, function() { authenticate(req, res, next) });
+        } else {
+            next();
         }
     };
 };

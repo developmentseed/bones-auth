@@ -59,14 +59,11 @@ Bones.models.Auth = Backbone.Model.extend({
             options.error(this, error);
             return false;
         }
-        // Grab CSRF protection cookie and merge into `params`.
-        if (Backbone.csrf) {
-            var csrf = Backbone.csrf();
-            (csrf) && (params['bones.csrf'] = csrf);
-        }
-        // Make the request.
         var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl,
             that = this;
+        // Grab CSRF protection cookie and merge into `params`.
+        Backbone.csrf && (params['bones.csrf'] = Backbone.csrf(url));
+        // Make the request.
         $.ajax({
             url: url,
             type: 'POST',
