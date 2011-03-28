@@ -88,6 +88,9 @@ var applyOverrides = function(hash) {
 //   Defaults to Connect `session.MemoryStore`.
 // - `options.url`': Optional. The url at which authentication requests should
 //   be accepted. Defaults to `/api/Authenticate`.
+// - `options.adminParty`': Boolean. When true a default `admin` user is
+//   always logged in. For *development convenience only* -- should never be
+//   used in production.
 module.exports.authenticate = function(options) {
     options = options || {};
     options.secret = options.secret || '';
@@ -126,6 +129,10 @@ module.exports.authenticate = function(options) {
     var authenticate = function(req, res, next) {
         // Auth operation.
         if (req.url === options.url && req.body) {
+            // If `adminParty` enabled, treat all as logged in `admin` user.
+            if (options.adminParty && req.session) {
+                req.session.user = new options.Model({id: 'admin' });
+            }
             switch (req.body.method) {
             case 'load':
                 if (req.session.user) {
