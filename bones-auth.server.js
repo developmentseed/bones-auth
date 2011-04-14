@@ -128,15 +128,17 @@ module.exports.authenticate = function(options) {
 
     // Main authentication middleware. Handles load/logout/login operations.
     var authenticate = function(req, res, next) {
+        // If `adminParty` enabled, treat all as logged in `admin` user.
+        if (options.adminParty && req.session) {
+            req.session.user = new options.Model(
+                _(options.adminParty).isBoolean()
+                ? {id:'admin'}
+                : options.adminParty
+            );
+            req.session.user.authenticated = true;
+        }
         // Auth operation.
         if (req.url === options.url && req.body) {
-            // If `adminParty` enabled, treat all as logged in `admin` user.
-            if (options.adminParty && req.session) {
-                options.adminParty = _.isBoolean(options.adminParty)
-                    ? {id: 'admin' }
-                    : options.adminParty;
-                req.session.user = new options.Model(options.adminParty);
-            }
             switch (req.body.method) {
             case 'load':
                 if (req.session.user) {
@@ -190,7 +192,7 @@ module.exports.authenticate = function(options) {
     // Wrapping middleware - adds session handling selectively: only when a
     // session is active or at the authentication URL endpoint.
     return function(req, res, next) {
-        if (options.url === req.url || req.cookies[options.key]) {
+        if (options.url === req.url || req.cookies[options.key] || options.adminParty) {
             sess(req, res, function() { authenticate(req, res, next) });
         } else {
             next();
