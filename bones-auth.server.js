@@ -161,6 +161,7 @@ module.exports.authenticate = function(options) {
                         if (resp.password === hash(req.body.password)) {
                             req.session.regenerate(function() {
                                 req.session.user = model;
+                                req.session.user.authenticated = true;
                                 res.send(model.toJSON(), 200);
                             });
                         } else {
