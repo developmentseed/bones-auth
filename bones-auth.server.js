@@ -6,6 +6,8 @@ var _ = require('underscore')._,
     Bones = require('bones'),
     Auth = require('./bones-auth').models.Auth,
     AuthList = require('./bones-auth').models.AuthList,
+    User = require('./bones-auth').models.User,
+    Users = require('./bones-auth').models.Users,
     templates = [
         'AdminFormLogin',
         'AdminFormUser',
@@ -28,6 +30,7 @@ var applyOverrides = function(hash) {
     // such that they are never returned to the client. The `password`
     // property is preserved on the original response object enabling
     // authentication code to access the response directly.
+    User.prototype.parse =
     Auth.prototype.parse = function(resp) {
         var filtered = _.clone(resp);
         !_.isUndefined(filtered.password) && (delete filtered.password);
@@ -35,6 +38,7 @@ var applyOverrides = function(hash) {
     };
     // Override sync for Auth model. Hashes passwords when saved to
     // persistence.
+    User.prototype.sync =
     Auth.prototype.sync = function(method, model, success, error) {
         switch (method) {
         case 'create':
@@ -68,6 +72,7 @@ var applyOverrides = function(hash) {
     };
     // Override parse for AuthList collection. Calls `parse` from above on
     // each model, stripping private attributes.
+    Users.prototype.parse =
     AuthList.prototype.parse = function(resp) {
         return _.map(resp, this.model.prototype.parse);
     };
