@@ -1,0 +1,13 @@
+{
+    "name": "bones-auth",
+    "version": "1.0.0",
+
+    "bundleDependencies": [
+        "bones",
+        "expresso"
+    ],
+
+    "scripts": {
+        "test": "expresso"
+    }
+}
