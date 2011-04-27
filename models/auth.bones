@@ -11,60 +11,59 @@ model = Backbone.Model.extend({
     // modified by other javascript code.
     authenticated: false,
 
-    // Make an authentication call to an Auth model.
-    //
-    // - `method`:
-    //   - `load`: Load the current session model. On `success` considers the
-    //     model authenticated.
-    //   - `login`': Login the current model. On `success` considers the model
-    //     authenticated.
-    //   - `logout`': Logout the current model. On `success` considers the
-    //     model no longer authenticated.
-    // - `params`: Only required for `login` method. Pass login credentials as
-    //   `params.id`, `params.password`. Note that `params.password` should not
-    //   be `set()` on a model when using `authenticate`, only to change the
-    //   password value of a model.
-    // - `options`: Takes `options.success` and `options.error` callbacks,
-    //   similar to the native Backbone `model.fetch`.
-    authenticate: function(method, params, options) {
-        if (_(['load', 'login', 'logout']).indexOf(method) === -1) {
-            throw new Error('Auth method must be specified.');
-        }
-        // Default options object.
-        options = options || {};
-        options.success = options.success || function() {};
-        options.error = options.error || function() {};
-        // Default params object.
-        params = params || {};
-        params.method = params.method || method;
+    initialize: function() {
+        _.bindAll(this, 'success', 'error');
+    },
+
+    success: function(data) {
+        this.set(data);
+        this.authenticated = data.id !== null;
+        this.trigger('auth:status', this);
+    },
+
+    error: function(data) {
+        this.trigger('auth:error', this, data);
+    },
+
+    request: function(method, params) {
+        if (!params) params = {};
+
         // Validate params.
-        var error = this.validate && this.validate(params);
-        if (error) {
-            options.error(this, error);
+        var error;
+        if (method === 'POST' && this.validate && (error = this.validate(params))) {
+            this.trigger('auth:error', this, error);
             return false;
         }
-        var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl,
-            that = this;
+
+        var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl;
+        url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
+
         // Grab CSRF protection cookie and merge into `params`.
-        Backbone.csrf && (params['bones.csrf'] = Backbone.csrf(url));
+        if (Bones.csrf && params) params['bones.csrf'] = Bones.csrf(url);
+
         // Make the request.
         $.ajax({
             url: url,
-            type: 'POST',
+            type: method,
             contentType: 'application/json',
-            data: JSON.stringify(params),
-            dataType: 'json',
-            processData: false,
-            success: function(data) {
-                !_.isEmpty(data) && that.set(data);
-                that.authenticated = (method === 'load' || method === 'login');
-                that.trigger('auth', that);
-                that.trigger('auth:' + method, that);
-                options.success(data);
-            },
-            error: function(data) {
-                options.error(that, data);
-            }
+            processData: method === 'GET',
+            data: method === 'GET' ? params : JSON.stringify(params),
+            success: this.success,
+            error: this.error
         });
+
+        return this;
+    },
+
+    status: function() {
+        return this.request('GET', null);
+    },
+
+    login: function(params) {
+        return this.request('POST', params || {});
+    },
+
+    logout: function(params) {
+        return this.request('DELETE', params || {});
     }
 });

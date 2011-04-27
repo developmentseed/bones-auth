@@ -1,7 +1,7 @@
 // AdminPopupUser
 // --------------
 // User account creation/update popup.
-if (views.AdminPopup) model = views.AdminPopup.extend({
+if (views.AdminPopup) view = views.AdminPopup.extend({
     events: _.extend({
         'click input[type=submit]': 'submit'
     }, views.AdminPopup.prototype.events),

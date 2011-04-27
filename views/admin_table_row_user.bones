@@ -1,7 +1,7 @@
 // AdminTableRowUser
 // -----------------
 // Custom table row for users.
-if (views.AdminTableRow) model = views.AdminTableRow.extend({
+if (views.AdminTableRow) view = views.AdminTableRow.extend({
     initialize: function(options) {
         _.bindAll(this, 'render');
         views.AdminTableRow.prototype.initialize.call(this, options);

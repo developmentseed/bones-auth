@@ -1,7 +1,7 @@
 // AdminLogin
 // ----------
 // View. Login form that integrates with `bones-admin` toolbar as an auth view.
-model = Backbone.View.extend({
+view = Backbone.View.extend({
     admin: null,
     context: null,
     events: {

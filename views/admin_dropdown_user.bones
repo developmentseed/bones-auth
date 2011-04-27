@@ -1,7 +1,7 @@
 // AdminDropdownUser
 // -----------------
 // User management dropdown.
-if (views.AdminDropdown) model = views.AdminDropdown.extend({
+if (views.AdminDropdown) view = views.AdminDropdown.extend({
     icon: 'user',
     events: _.extend({
         'click a[href=#logout]': 'logout',
