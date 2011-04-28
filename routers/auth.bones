@@ -52,7 +52,12 @@ router = Bones.Router.extend({
         this.server.post(args.url, this.session, this.login, this.status);
         this.server.del(args.url, this.session, this.logout, this.status);
 
-        this.server.all('/api/user/:id?', function(req, res, next) {
+        // TODO: find a better solution for this?
+        var model = new args.model({ id: ':id?' });
+        var route = _.isFunction(model.url) ? model.url() : model.url;
+        this.server.all(route, function(req, res, next) {
+            // Hash all passwords before anyone else sees them. This is the
+            // only place the hash function is known.
             if (req.body) {
                 if (req.body.password) req.body.password = router.hash(req.body.password);
                 if (req.body.passwordConfirm) req.body.passwordConfirm = router.hash(req.body.passwordConfirm);
