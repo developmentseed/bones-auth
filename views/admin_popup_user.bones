@@ -8,7 +8,7 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
     initialize: function (options) {
         _.bindAll(this, 'submit');
         this.create = !Boolean(this.model.id);
-        this.content = this.template('AdminFormUser', this.model);
+        this.content = templates['AdminFormUser'](this.model);
         views.AdminPopup.prototype.initialize.call(this, options);
     },
     submit: function() {
@@ -26,7 +26,9 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
                 new views.AdminGrowl({message: message});
                 that.close();
             },
-            error: this.admin.error
+            error: function(model, resp) {
+                that.admin.error(model, resp.error);
+            }
         });
         return false;
     }

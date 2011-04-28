@@ -15,18 +15,20 @@ var writeHead = require('http').ServerResponse.prototype.writeHead;
 // - `args.store`: Optional. An instance of the session store to use.
 //   Defaults to Connect `session.MemoryStore`.
 // - `args.url`': Optional. The url at which authentication requests should
-//   be accepted. Defaults to `/api/Authenticate`.
+//   be accepted. Defaults to `/api/authentication`.
 // - `args.adminParty`': Boolean or Object. When true a default `admin`
 //   user is always logged in. Optionally pash a hash of attributes to use for
 //   the default logged in user.  For *development convenience only* -- should
 //   never be used in production.
 router = Bones.Router.extend({
     initialize: function(server, args) {
+        var router = this;
+
         if (!args) args = {};
         args.secret = args.secret || '';
         args.model = args.model || models['Auth'];
         args.store = args.store || new express.session.MemoryStore({ reapInterval: -1 }),
-        args.url = args.url || '/api/authentication';
+        args.url = args.url || '/api/auth';
         args.key = args.key || 'connect.sid';
 
         this.args = args;
@@ -36,13 +38,43 @@ router = Bones.Router.extend({
         };
 
         this.session = express.session(args);
+        this.admin = this.admin.bind(this);
         this.status = this.status.bind(this);
         this.login = this.login.bind(this);
         this.logout = this.logout.bind(this);
 
-        this.server.get(args.url, this.status);
+        if (this.config.adminParty) {
+            // Always log in when we're having an admin party.
+            this.server.get(args.url, this.session, this.admin, this.status);
+        } else {
+            this.server.get(args.url, this.status);
+        }
         this.server.post(args.url, this.session, this.login, this.status);
         this.server.del(args.url, this.session, this.logout, this.status);
+
+        this.server.all('/api/user/:id?', function(req, res, next) {
+            if (req.body) {
+                if (req.body.password) req.body.password = router.hash(req.body.password);
+                if (req.body.passwordConfirm) req.body.passwordConfirm = router.hash(req.body.passwordConfirm);
+            }
+            next();
+        });
+    },
+
+    admin: function(req, res, next) {
+        // Always log in when we're having an admin party.
+        new this.args.model({ id: 'admin' }).fetch({
+            success: function(model, resp) {
+                req.session.regenerate(function() {
+                    req.session.user = model;
+                    req.session.user.authenticated = true;
+                    next();
+                });
+            },
+            error: function() {
+                res.send({ error: 'User model failed to auto-login.' }, 500);
+            }
+        });
     },
 
     status: function(req, res, next) {
@@ -62,7 +94,7 @@ router = Bones.Router.extend({
                 // There's no user object, so we'll just destroy the session.
                 res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));
                 req.session.destroy();
-                res.send({ id: null });
+                res.send({ id: null, 'sentby': 'session deletion in Router auth.status' });
             }
         });
     },

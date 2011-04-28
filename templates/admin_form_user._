@@ -1,16 +1,15 @@
 <form action='/' method='post'>
-{{#id}}
+<% if (id) { %>
 <div>
     <label>Username</label>
-    <strong>{{.}}</strong>
+    <strong><%= id %></strong>
 </div>
-{{/id}}
-{{^id}}
+<% } else { %>
 <div>
     <label for='id'>Username</label>
     <input type='text' name='id' />
 </div>
-{{/id}}
+<% } %>
 <div>
     <div class='inline'>
         <label for='password'>Password</label>
@@ -22,7 +21,7 @@
     </div>
 </div>
 <div class='buttons'>
-    {{#id}}<input type='submit' value='Change password' />{{/id}}
-    {{^id}}<input type='submit' value='Create user' />{{/id}}
+    <% if (id) { %><input type='submit' value='Change password' />
+    <% } else { %><input type='submit' value='Create user' /><% } %>
 </div>
 </form>

@@ -4,7 +4,7 @@
 model = Backbone.Model.extend({
     // Authentication endpoint URL. Override this in base classes to use a
     // different path for `authenticate` requests.
-    authUrl: '/api/authentication',
+    authUrl: '/api/auth',
 
     // Boolean. Marks whether an Auth model has been authenticated. Do not
     // trust this flag for critical client-side access protection as it can be
@@ -21,8 +21,14 @@ model = Backbone.Model.extend({
         this.trigger('auth:status', this);
     },
 
-    error: function(data) {
-        this.trigger('auth:error', this, data);
+    error: function(xhr) {
+        try {
+            var data = $.parseJSON(xhr.responseText);
+            data = data.error || data;
+        } catch(e) {
+            var data = xhr.responseText;
+        }
+        this.trigger('auth:error', this, { error: data });
     },
 
     request: function(method, params) {
@@ -48,6 +54,7 @@ model = Backbone.Model.extend({
             contentType: 'application/json',
             processData: method === 'GET',
             data: method === 'GET' ? params : JSON.stringify(params),
+            dataType: 'json',
             success: this.success,
             error: this.error
         });
@@ -55,15 +62,15 @@ model = Backbone.Model.extend({
         return this;
     },
 
-    status: function() {
-        return this.request('GET', null);
+    status: function(params) {
+        return this.request('GET', params);
     },
 
     login: function(params) {
-        return this.request('POST', params || {});
+        return this.request('POST', params);
     },
 
     logout: function(params) {
-        return this.request('DELETE', params || {});
+        return this.request('DELETE', params);
     }
 });

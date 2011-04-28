@@ -21,7 +21,7 @@ if (views.AdminDropdown) view = views.AdminDropdown.extend({
         views.AdminDropdown.prototype.initialize.call(this, options);
     },
     logout: function() {
-        this.model.authenticate('logout', {}, { error: this.admin.error });
+        this.model.logout();
         return false;
     },
     user: function() {
@@ -35,7 +35,7 @@ if (views.AdminDropdown) view = views.AdminDropdown.extend({
     userCreate: function() {
         new views.AdminPopupUser({
             title: 'Create user',
-            model: new this.model.constructor(),
+            model: new this.model.constructor({ id: '' }),
             admin: this.admin
         });
         return false;

@@ -8,36 +8,20 @@ models['Auth'].prototype.parse = function(resp) {
     return filtered;
 };
 
-// Override sync for Auth model. Hashes passwords when saved to
-// persistence.
+var config;
+
+// TODO: Find a better way to get config options in a server model.
+var originalRegister = models['Auth'].register;
+models['Auth'].register = function(server) {
+    config = server.plugin.config;
+    return originalRegister.apply(this, arguments);
+};
+
 models['Auth'].prototype.sync = function(method, model, success, error) {
-    switch (method) {
-    case 'create':
-    case 'update':
-        var authWriteSuccess = function(resp) {
-            model.unset('password');
-            success(resp);
-        };
-        var authWriteError = function(resp) {
-            model.unset('password');
-            error(resp);
-        };
-        var authWrite = function(data) {
-            data.password && model.set(
-                {password: data.password},
-                {silent: true}
-            );
-            Backbone.sync(method, model, authWriteSuccess, authWriteError);
-        };
-        if (model.get('passwordConfirm')) model.unset('passwordConfirm');
-        if (model.get('password')) {
-            authWrite({ password: hash(model.get('password')) });
-        } else {
-            Backbone.sync('read', model, authWrite, authWrite);
-        }
-        break;
-    default:
+    if (method === 'read' && config.adminParty) {
+        success(model);
+        return;
+    } else {
         Backbone.sync(method, model, success, error);
-        break;
     }
 };
