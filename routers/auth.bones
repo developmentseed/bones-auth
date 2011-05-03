@@ -52,10 +52,10 @@ router = Bones.Router.extend({
         this.server.post(args.url, this.session, this.login, this.status);
         this.server.del(args.url, this.session, this.logout, this.status);
 
-        // TODO: find a better solution for this?
-        var model = new args.model({ id: ':id?' });
+        // TODO: Add the auth router before the core router.
+        var model = new args.model({ id: '' });
         var route = _.isFunction(model.url) ? model.url() : model.url;
-        this.server.all(route, function(req, res, next) {
+        this.server.use(route, function removePasswords(req, res, next) {
             // Hash all passwords before anyone else sees them. This is the
             // only place the hash function is known.
             if (req.body) {

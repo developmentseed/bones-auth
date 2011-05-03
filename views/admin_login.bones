@@ -16,6 +16,8 @@ view = Backbone.View.extend({
             context: $('#bonesAdminToolbar > .auth')
         });
 
+        // TODO: there's no event for unattachment
+        this.model.unbind('auth:error');
         this.model.bind('auth:error', function(model, error) {
             // TODO: implement better error message handling.
             alert(error.error);
