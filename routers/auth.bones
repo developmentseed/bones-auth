@@ -15,7 +15,7 @@ var writeHead = require('http').ServerResponse.prototype.writeHead;
 // - `args.store`: Optional. An instance of the session store to use.
 //   Defaults to Connect `session.MemoryStore`.
 // - `args.url`': Optional. The url at which authentication requests should
-//   be accepted. Defaults to `/api/authentication`.
+//   be accepted. Defaults to `/api/auth`.
 // - `args.adminParty`': Boolean or Object. When true a default `admin`
 //   user is always logged in. Optionally pash a hash of attributes to use for
 //   the default logged in user.  For *development convenience only* -- should
@@ -43,16 +43,7 @@ router = Bones.Router.extend({
         this.login = this.login.bind(this);
         this.logout = this.logout.bind(this);
 
-        if (this.config.adminParty) {
-            // Always log in when we're having an admin party.
-            this.server.get(args.url, this.session, this.admin, this.status);
-        } else {
-            this.server.get(args.url, this.status);
-        }
-        this.server.post(args.url, this.session, this.login, this.status);
-        this.server.del(args.url, this.session, this.logout, this.status);
-
-        // TODO: Add the auth router before the core router.
+        // NOTE: Add the auth router before the core router.
         var model = new args.model({ id: '' });
         var route = _.isFunction(model.url) ? model.url() : model.url;
         this.server.use(route, function removePasswords(req, res, next) {
@@ -64,6 +55,18 @@ router = Bones.Router.extend({
             }
             next();
         });
+
+        // Moving the .get()/.post()/... calls below the .use() call as
+        // they obscure the .use()
+        // TODO: Find a solution so that other modules also can do .use()
+        if (this.config.adminParty) {
+            // Always log in when we're having an admin party.
+            this.server.get(args.url, this.session, this.admin, this.status);
+        } else {
+            this.server.get(args.url, this.status);
+        }
+        this.server.post(args.url, this.session, this.login, this.status);
+        this.server.del(args.url, this.session, this.logout, this.status);
     },
 
     admin: function(req, res, next) {
