@@ -43,7 +43,8 @@ var User = {
 };
 
 if (models.Document) {
-    model = models.Auth.extend(models.Document.extend(User).prototype);
+    User = models.Document.extend(User);
+    model = models.Auth.extend(User.prototype, User);
 } else {
     model = models.Auth.extend(User);
 }
