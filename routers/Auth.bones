@@ -15,7 +15,7 @@ var writeHead = require('http').ServerResponse.prototype.writeHead;
 // - `args.store`: Optional. An instance of the session store to use.
 //   Defaults to Connect `session.MemoryStore`.
 // - `args.url`': Optional. The url at which authentication requests should
-//   be accepted. Defaults to `/api/auth`.
+//   be accepted. Defaults to `/api/Auth`.
 // - `args.adminParty`': Boolean or Object. When true a default `admin`
 //   user is always logged in. Optionally pash a hash of attributes to use for
 //   the default logged in user.  For *development convenience only* -- should
@@ -28,7 +28,7 @@ router = Bones.Router.extend({
         args.secret = args.secret || '';
         args.model = args.model || models['Auth'];
         args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
-        args.url = args.url || '/api/auth';
+        args.url = args.url || '/api/Auth';
         args.key = args.key || 'connect.sid';
 
         this.args = args;
@@ -102,7 +102,7 @@ router = Bones.Router.extend({
                 // There's no user object, so we'll just destroy the session.
                 res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));
                 req.session.destroy();
-                res.send({ id: null, 'sentby': 'session deletion in Router auth.status' });
+                res.send({ id: null });
             }
         });
     },
@@ -117,7 +117,7 @@ router = Bones.Router.extend({
         var router = this;
         new this.args.model({ id: req.body.id }).fetch({
             success: function(model, resp) {
-                if (resp.password === router.hash(req.body.password)) {
+                if (resp.password === req.body.password) {
                     req.session.regenerate(function() {
                         req.session.user = model;
                         req.session.user.authenticated = true;

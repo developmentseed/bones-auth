@@ -4,7 +4,8 @@
 model = Backbone.Model.extend({
     // Authentication endpoint URL. Override this in base classes to use a
     // different path for `authenticate` requests.
-    authUrl: '/api/auth',
+    url: '/api/Auth',
+    authUrl: '/api/Auth',
 
     // Boolean. Marks whether an Auth model has been authenticated. Do not
     // trust this flag for critical client-side access protection as it can be
@@ -45,6 +46,7 @@ model = Backbone.Model.extend({
         url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
 
         // Grab CSRF protection cookie and merge into `params`.
+        // TODO: this doesn't work
         if (Bones.csrf && params) params['bones.csrf'] = Bones.csrf(url);
 
         // Make the request.

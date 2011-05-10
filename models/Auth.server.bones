@@ -8,17 +8,8 @@ models['Auth'].prototype.parse = function(resp) {
     return filtered;
 };
 
-var config;
-
-// TODO: Find a better way to get config options in a server model.
-var originalRegister = models['Auth'].register;
-models['Auth'].register = function(server) {
-    config = server.plugin.config;
-    return originalRegister.apply(this, arguments);
-};
-
 models['Auth'].prototype.sync = function(method, model, success, error) {
-    if (method === 'read' && config.adminParty) {
+    if (method === 'read' && Bones.plugin.config.adminParty) {
         success(model);
         return;
     } else {

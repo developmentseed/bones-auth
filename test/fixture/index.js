@@ -1,6 +1,3 @@
-var plugin = module.exports = require('bones').plugin(__dirname);
-
-
 var cache = {
     // Root user fixture
     'root': {
@@ -11,16 +8,17 @@ var cache = {
 
 require('bones').Backbone.sync = function(method, model, success, error) {
     if (method === 'read') {
-        if (model.id && model.id in cache) return success(cache[model.id]);
+        if (model.id && model.id in cache) {
+            return success(cache[model.id]);
+        }
     }
 
     error();
 };
 
-
-plugin.load(require('../..'));
-plugin.load();
+require('bones-auth');
+require('bones').load(__dirname);
 
 if (!module.parent) {
-    plugin.start();
+    require('bones').start();
 }

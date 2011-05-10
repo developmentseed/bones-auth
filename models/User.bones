@@ -21,7 +21,7 @@ var User = {
         }
     },
     url: function() {
-        return '/api/user/' + this.id;
+        return '/api/User/' + this.id;
     },
     validate: function(attr) {
         // Login.
