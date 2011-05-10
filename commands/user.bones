@@ -5,7 +5,13 @@ command = Bones.Command.extend();
 command.description = 'User management';
 
 command.prototype.initialize = function(options) {
-   var actions = {
+    // need to initialize the servers, to register connections to the db.
+    var servers = {};
+    for (var server in options.servers) {
+        servers[server] = new options.servers[server](options);
+    }
+
+    var actions = {
         'list': {
             name: 'user list',
             description: 'list all users',
@@ -68,8 +74,8 @@ command.prototype.initialize = function(options) {
                 }
             }
         }
-   };
+    };
 
-   actions[options.argv._[1]] && actions[options.argv._[1]].command(options.argv, console.log);
+    actions[options.argv._[1]] && actions[options.argv._[1]].command(options.argv, console.log);
 }
 
