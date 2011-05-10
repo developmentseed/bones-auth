@@ -4,15 +4,20 @@
 // JSV validation.
 var User = {
     schema: {
-        'id': {
-            'type': 'string',
-            'title': 'Username',
-            'pattern': '^[A-Za-z0-9\-_ ]+$',
-            'required': true
-        },
-        'password': {
-            'type': 'string',
-            'title': 'Password'
+        'type': 'object',
+        'id': 'User',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'title': 'Username',
+                'pattern': '^[A-Za-z0-9\-_ ]+$',
+                'required': true,
+                'minLength': 1
+            },
+            'password': {
+                'type': 'string',
+                'title': 'Password'
+            }
         }
     },
     url: function() {
