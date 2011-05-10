@@ -139,14 +139,18 @@ router = Bones.Router.extend({
         // Note: the cookie will be deleted by .status()
     }
 }, {
-    requireValidUser: function(app, route) {
-        // Convert to app.server.use() once
-        // https://github.com/visionmedia/express/issues/652 is resolved.
-        app.server.all(route, function(req, res, next) {
+    requireValidUser: function(app, methods, route) {
+        if (!Array.isArray(methods)) {
+            route = methods;
+            methods = ['all'];
+        }
+        methods.forEach(function(method) { app.server[method](route, check); });
+
+        function check(req, res, next) {
             app.routers.Auth.session(req, res, function() {
                 if (!req.session.user) res.send(403);
                 else next();
             });
-        });
+        };
     }
 });
