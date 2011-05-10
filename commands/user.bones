@@ -5,13 +5,13 @@ command = Bones.Command.extend();
 
 command.description = 'User management';
 
-command.prototype.initialize = function(options) {
-    var secret = JSON.parse(fs.readFileSync(options.config.secret));
+command.prototype.initialize = function(plugin) {
+    var secret = plugin.config.secret;
 
     // need to initialize the servers, to register connections to the db.
     var servers = {};
-    for (var server in options.servers) {
-        servers[server] = new options.servers[server](options);
+    for (var server in plugin.servers) {
+        servers[server] = new plugin.servers[server](plugin);
     }
 
     var actions = {
@@ -82,6 +82,6 @@ command.prototype.initialize = function(options) {
         }
     };
 
-    actions[options.argv._[1]] && actions[options.argv._[1]].command(options.argv, console.log);
+    actions[plugin.argv._[1]] && actions[plugin.argv._[1]].command(plugin.argv, console.log);
 }
 

@@ -1,3 +1,13 @@
+var crypto = require('crypto');
+
+models['Auth'].secret = function() {
+    return Bones.plugin.config.secret;
+};
+
+models['Auth'].hash = function(string) {
+    return crypto.createHmac('sha256', this.secret()).update(string).digest('hex');
+};
+
 // Override parse for Auth model. Filters out passwords server side
 // such that they are never returned to the client. The `password`
 // property is preserved on the original response object enabling

@@ -1,4 +1,3 @@
-var crypto = require('crypto');
 var writeHead = require('http').ServerResponse.prototype.writeHead;
 
 // Authentication middleware
@@ -6,10 +5,6 @@ var writeHead = require('http').ServerResponse.prototype.writeHead;
 // Factory function that returns an Express session-based authentication
 // middleware. Automatically adds the Connect session middleware.
 //
-// - `args.secret`: A stable, secret key that is only accessible to the
-//   server. The secret key is used to hash Auth model passwords when saving to
-//   persistence and to authenticate incoming authentication requests against
-//   saved values.
 // - `args.model`: Optional. Model class to use for authentication. Supply
 //   your own custom Auth model, or default to `Auth`.
 // - `args.store`: Optional. An instance of the session store to use.
@@ -25,7 +20,6 @@ router = Bones.Router.extend({
         var router = this;
 
         if (!args) args = {};
-        args.secret = args.secret || '';
         args.model = args.model || models['Auth'];
         args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
         args.url = args.url || '/api/Auth';
@@ -33,11 +27,8 @@ router = Bones.Router.extend({
 
         this.args = args;
         this.config = app.plugin.config;
-        this.hash = function(string) {
-            return crypto.createHmac('sha256', args.secret).update(string).digest('hex');
-        };
 
-        this.session = middleware.session(args);
+        this.session = middleware.session({ secret: args.model.secret() });
         this.admin = this.admin.bind(this);
         this.status = this.status.bind(this);
         this.login = this.login.bind(this);
@@ -46,12 +37,12 @@ router = Bones.Router.extend({
         // NOTE: Add the auth router before the core router.
         var model = new args.model({ id: '' });
         var route = _.isFunction(model.url) ? model.url() : model.url;
-        this.server.use(route, function removePasswords(req, res, next) {
+        this.server.use(route, function hashPasswords(req, res, next) {
             // Hash all passwords before anyone else sees them. This is the
             // only place the hash function is known.
             if (req.body) {
-                if (req.body.password) req.body.password = router.hash(req.body.password);
-                if (req.body.passwordConfirm) req.body.passwordConfirm = router.hash(req.body.passwordConfirm);
+                if (req.body.password) req.body.password = args.model.hash(req.body.password);
+                if (req.body.passwordConfirm) req.body.passwordConfirm = args.model.hash(req.body.passwordConfirm);
             }
             next();
         });

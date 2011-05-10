@@ -1,3 +1,5 @@
+require('bones').plugin.config.secret = '4b6be4b408195388def323740e7cc20053fa6f57f46faf57816a99ae2a257af2';
+
 var cache = {
     // Root user fixture
     'root': {
@@ -15,6 +17,7 @@ require('bones').Backbone.sync = function(method, model, success, error) {
 
     error();
 };
+
 
 require('bones-auth');
 require('bones').load(__dirname);
