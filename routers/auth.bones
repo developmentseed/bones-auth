@@ -21,23 +21,23 @@ var writeHead = require('http').ServerResponse.prototype.writeHead;
 //   the default logged in user.  For *development convenience only* -- should
 //   never be used in production.
 router = Bones.Router.extend({
-    initialize: function(server, args) {
+    initialize: function(app, args) {
         var router = this;
 
         if (!args) args = {};
         args.secret = args.secret || '';
         args.model = args.model || models['Auth'];
-        args.store = args.store || new express.session.MemoryStore({ reapInterval: -1 }),
+        args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
         args.url = args.url || '/api/auth';
         args.key = args.key || 'connect.sid';
 
         this.args = args;
-        this.config = server.plugin.config;
+        this.config = app.plugin.config;
         this.hash = function(string) {
             return crypto.createHmac('sha256', args.secret).update(string).digest('hex');
         };
 
-        this.session = express.session(args);
+        this.session = middleware.session(args);
         this.admin = this.admin.bind(this);
         this.status = this.status.bind(this);
         this.login = this.login.bind(this);
