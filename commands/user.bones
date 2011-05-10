@@ -1,10 +1,14 @@
-var fs = require('fs'),
+var crypto = require('crypto');
 
 command = Bones.Command.extend();
 
 command.description = 'User management';
 
 command.prototype.initialize = function(options) {
+    // TODO: Do not hardcode!!.
+    // This is being incorrectly done in the stack, so this is a temportary situation.
+    var secret = '4b6be4b408195388def323740e7cc20053fa6f57f46faf57816a99ae2a257af2';
+
     // need to initialize the servers, to register connections to the db.
     var servers = {};
     for (var server in options.servers) {
@@ -40,8 +44,11 @@ command.prototype.initialize = function(options) {
             name: 'user add <username> <password>',
             description: 'create a new user account',
             command: function(argv, callback) {
-                if (argv._[1] && argv._[2]) {
-                    var user = new models.User({id: argv._[2], password: argv._[3]});
+                if (argv._[2] && argv._[3]) {
+                    var pass = crypto.createHmac('sha256', secret)
+                       .update('' + argv._[3]).digest('hex');
+
+                    var user = new models.User({id: argv._[2], password: pass});
                     user.save({}, {
                         success: function(model, resp) {
                             console.log('User %s created', argv._[2]);
