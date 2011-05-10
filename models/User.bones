@@ -23,6 +23,76 @@ var User = {
     url: function() {
         return '/api/User/' + this.id;
     },
+
+    // Boolean. Marks whether a User model has been authenticated. Do not
+    // trust this flag for critical client-side access protection as it can be
+    // modified by other javascript code.
+    authenticated: false,
+
+    initialize: function() {
+        _.bindAll(this, 'success', 'error');
+    },
+
+    success: function(data) {
+        this.set(data);
+        this.authenticated = data.id !== null;
+        this.trigger('auth:status', this);
+    },
+
+    error: function(xhr) {
+        try {
+            var data = $.parseJSON(xhr.responseText);
+            data = data.error || data;
+        } catch(e) {
+            var data = xhr.responseText;
+        }
+        this.trigger('auth:error', this, { error: data });
+    },
+
+    request: function(method, params) {
+        if (!params) params = {};
+
+        // Validate params.
+        var error;
+        if (method === 'POST' && this.validate && (error = this.validate(params))) {
+            this.trigger('auth:error', this, error);
+            return false;
+        }
+
+        var url = this.constructor.authUrl;
+        url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
+
+        // Grab CSRF protection cookie and merge into `params`.
+        // TODO: this doesn't work
+        if (Bones.csrf && params) params['bones.csrf'] = Bones.csrf(url);
+
+        // Make the request.
+        $.ajax({
+            url: url,
+            type: method,
+            contentType: 'application/json',
+            processData: method === 'GET',
+            data: method === 'GET' ? params : JSON.stringify(params),
+            dataType: 'json',
+            success: this.success,
+            error: this.error
+        });
+
+        return this;
+    },
+
+    status: function(params) {
+        return this.request('GET', params);
+    },
+
+    login: function(params) {
+        return this.request('POST', params);
+    },
+
+    logout: function(params) {
+        return this.request('DELETE', params);
+    },
+
     validate: function(attr) {
         // Login.
         if (!_.isUndefined(attr.id) && !_.isUndefined(attr.password)) {
@@ -48,14 +118,11 @@ var User = {
 };
 
 if (models.Document) {
-    model = models.Auth.extend(models.Document.extend(User).prototype);
-    // We need both the Auth and Document initialize methods to be called
-    // so we extend our modelt to do call them directly.
-    // TODO make this elegant.
-    model.prototype.initialize = function() {
-        models.Document.prototype.initialize.call(this);
-        models.Auth.prototype.initialize.call(this);
-    };
+    model = models.Document.extend(User);
 } else {
-    model = models.Auth.extend(User);
+    model = Backbone.Model.extend(User);
 }
+
+// Authentication endpoint URL. Override this in base classes to use a
+// different path for `authenticate` requests.
+model.authUrl = '/api/Auth';

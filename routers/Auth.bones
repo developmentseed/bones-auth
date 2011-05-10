@@ -20,9 +20,9 @@ router = Bones.Router.extend({
         var router = this;
 
         if (!args) args = {};
-        args.model = args.model || models['Auth'];
+        args.model = args.model || models['User'];
         args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
-        args.url = args.url || '/api/Auth';
+        args.url = args.url || args.model.authUrl;
         args.key = args.key || 'connect.sid';
 
         this.args = args;
@@ -108,7 +108,7 @@ router = Bones.Router.extend({
         var router = this;
         new this.args.model({ id: req.body.id }).fetch({
             success: function(model, resp) {
-                if (resp.password === req.body.password) {
+                if (resp.password === model.constructor.hash(req.body.password)) {
                     req.session.regenerate(function() {
                         req.session.user = model;
                         req.session.user.authenticated = true;
