@@ -4,15 +4,20 @@
 // JSV validation.
 var User = {
     schema: {
-        'id': {
-            'type': 'string',
-            'title': 'Username',
-            'pattern': '^[A-Za-z0-9\-_ ]+$',
-            'required': true
-        },
-        'password': {
-            'type': 'string',
-            'title': 'Password'
+        'type': 'object',
+        'id': 'User',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'title': 'Username',
+                'pattern': '^[A-Za-z0-9\-_ ]+$',
+                'required': true,
+                'minLength': 1
+            },
+            'password': {
+                'type': 'string',
+                'title': 'Password'
+            }
         }
     },
     url: function() {
@@ -43,8 +48,14 @@ var User = {
 };
 
 if (models.Document) {
-    User = models.Document.extend(User);
-    model = models.Auth.extend(User.prototype, User);
+    model = models.Auth.extend(models.Document.extend(User).prototype);
+    // We need both the Auth and Document initialize methods to be called
+    // so we extend our modelt to do call them directly.
+    // TODO make this elegant.
+    model.prototype.initialize = function() {
+        models.Document.prototype.initialize.call(this);
+        models.Auth.prototype.initialize.call(this);
+    };
 } else {
     model = models.Auth.extend(User);
 }
