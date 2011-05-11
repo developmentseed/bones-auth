@@ -63,7 +63,6 @@ var User = {
         url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
 
         // Grab CSRF protection cookie and merge into `params`.
-        // TODO: this doesn't work
         if (method !== 'GET') params['bones.token'] = Bones.csrf();
 
         // Make the request.
