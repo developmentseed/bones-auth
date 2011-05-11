@@ -64,7 +64,7 @@ var User = {
 
         // Grab CSRF protection cookie and merge into `params`.
         // TODO: this doesn't work
-        if (Bones.csrf && params) params['bones.csrf'] = Bones.csrf(url);
+        if (method !== 'GET') params['bones.token'] = Bones.csrf();
 
         // Make the request.
         $.ajax({
