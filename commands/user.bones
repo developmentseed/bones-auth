@@ -32,9 +32,8 @@ command = Bones.Command.extend({
                     }
                     callback();
                 },
-                error: function(resp) {
-                    console.warn(err);
-                    console.log('Error: %s', resp);
+                error: function(collection, err) {
+                    console.error('%s', err);
                     callback();
                 }
             });
@@ -54,8 +53,8 @@ command = Bones.Command.extend({
                         console.log('User %s created', argv._[2]);
                         callback();
                     },
-                    error: function(resp) {
-                        console.log('Error: %s', resp);
+                    error: function(model, err) {
+                        console.error('%s', err);
                         callback();
                     }
                 });
@@ -76,8 +75,8 @@ command = Bones.Command.extend({
                         console.log('User %s deleted', argv._[2]);
                         callback();
                     },
-                    error: function(resp) {
-                        console.log('Error: %s', resp);
+                    error: function(model, err) {
+                        console.error('%s', err);
                         callback();
                     }
                 });
