@@ -69,6 +69,33 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
+    // Test login without token in body
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ id: 'root', password: 'test' })
+    }, {
+        body: 'Forbidden',
+        status: 403
+    });
+
+    // Test login without token in cookie
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
+    }, {
+        body: 'Forbidden',
+        status: 403
+    });
+
     // Test login-status-logout sequence.
     assert.response(auth.server, {
         url: '/api/Auth',
