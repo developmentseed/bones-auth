@@ -23,6 +23,7 @@ var User = {
     url: function() {
         return '/api/User/' + this.id;
     },
+    authUrl: '/api/Auth',
 
     // Boolean. Marks whether a User model has been authenticated. Do not
     // trust this flag for critical client-side access protection as it can be
@@ -59,11 +60,11 @@ var User = {
             return false;
         }
 
-        var url = this.constructor.authUrl;
+        var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl;
         url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
 
         // Grab CSRF protection cookie and merge into `params`.
-        if (method !== 'GET') params['bones.token'] = Bones.csrf();
+        if (method !== 'GET') params['bones.token'] = Backbone.csrf(url);
 
         // Make the request.
         $.ajax({
@@ -121,7 +122,3 @@ if (models.Document) {
 } else {
     model = Backbone.Model.extend(User);
 }
-
-// Authentication endpoint URL. Override this in base classes to use a
-// different path for `authenticate` requests.
-model.authUrl = '/api/Auth';
