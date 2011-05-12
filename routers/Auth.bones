@@ -34,6 +34,7 @@ router = Bones.Router.extend({
         this.login = this.login.bind(this);
         this.logout = this.logout.bind(this);
 
+        // Use session middleware if req has session cookie.
         this.server.use(function(req, res, next) {
             if (req.cookies[args.key]) {
                 router.session(req, res, next);
@@ -41,6 +42,16 @@ router = Bones.Router.extend({
                 next();
             }
         });
+
+        // Instantiate user model from stored user JSON.
+        // See https://github.com/senchalabs/connect/blob/master/lib/middleware/session/memory.js#L70-76
+        // for how user models are converted to JSON when sessions are saved.
+        this.server.use(function(req, res, next) {
+            if (req.session && req.session.user) {
+                req.session.user = new this.args.model(req.session.user);
+            }
+            next();
+        }.bind(this));
 
         // NOTE: Add the auth router before the core router.
         var model = new args.model({ id: '' });
