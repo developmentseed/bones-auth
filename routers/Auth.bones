@@ -34,6 +34,14 @@ router = Bones.Router.extend({
         this.login = this.login.bind(this);
         this.logout = this.logout.bind(this);
 
+        this.server.use(function(req, res, next) {
+            if (req.cookies[args.key]) {
+                router.session(req, res, next);
+            } else {
+                next();
+            }
+        });
+
         // NOTE: Add the auth router before the core router.
         var model = new args.model({ id: '' });
         var route = _.isFunction(model.url) ? model.url() : model.url;
