@@ -12,12 +12,7 @@ models['User'].hash = function(string) {
 models['User'].augment({
     sync: function(parent, method, model, success, error) {
         model.unset('passwordConfirm', { silent: true });
-        if (method === 'read' && Bones.plugin.config.adminParty) {
-            success(model);
-            return;
-        } else {
-            Backbone.sync(method, model, success, error);
-        }
+        Backbone.sync(method, model, success, error);
     }
 });
 
