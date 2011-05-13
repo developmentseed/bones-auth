@@ -10,6 +10,10 @@
     <input type='text' name='id' />
 </div>
 <% } %>
+<div class='inline'>
+    <label for='email'>Email</label>
+    <input type='text' name='email' />
+</div>
 <div>
     <div class='inline'>
         <label for='password'>Password</label>
@@ -21,7 +25,7 @@
     </div>
 </div>
 <div class='buttons'>
-    <% if (id) { %><input type='submit' value='Change password' />
+    <% if (id) { %><input type='submit' value='Save changes' />
     <% } else { %><input type='submit' value='Create user' /><% } %>
 </div>
 </form>

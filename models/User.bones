@@ -17,6 +17,11 @@ var User = {
             'password': {
                 'type': 'string',
                 'title': 'Password'
+            },
+            'email': {
+                'type': 'string',
+                'title': 'Email address',
+                'format': 'email'
             }
         }
     },
