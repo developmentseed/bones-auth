@@ -93,9 +93,9 @@ router = Bones.Router.extend({
     // Always log in when we're having an admin party.
     admin: function(req, res, next) {
         if (req.session && !req.session.user) {
-            var attr = _(this.args.adminParty).isBoolean()
+            var attr = _(this.config.adminParty).isBoolean()
                 ? {id:'admin'}
-                : this.args.adminParty;
+                : this.config.adminParty;
             req.session.user = new this.args.model(attr, req.query);
             req.session.user.authenticated = true;
             next();
