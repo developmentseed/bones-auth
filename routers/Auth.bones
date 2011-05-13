@@ -25,32 +25,39 @@ router = Bones.Router.extend({
 
         this.args = args;
         this.config = app.plugin.config;
-        this.session = middleware.session({ secret: args.model.secret() });
 
-        this.server.use(this.selectiveSession.bind(this));
-        this.server.use(this.user.bind(this));
+        // Hash any passwords in req.body.
         this.server.use(this.hashPassword.bind(this));
+
+        // Add the session middleware.
+        this.session = middleware.session({ secret: args.model.secret() });
+        this.server.use(this.sessionPassive.bind(this));
+        this.server.use(this.args.url, this.sessionActive.bind(this));
+
+        // Rehydrate the user model.
+        this.server.use(this.user.bind(this));
         this.config.adminParty && this.server.use(this.admin.bind(this));
-        this.server.use(this.getStatus.bind(this));
-        this.server.use(this.login.bind(this));
-        this.server.use(this.logout.bind(this));
+
+        // Auth endpoint.
+        this.server.use(this.args.url, this.getStatus.bind(this));
+        this.server.use(this.args.url, this.login.bind(this));
+        this.server.use(this.args.url, this.logout.bind(this));
     },
 
-    // Simple path/method matcher.
-    matchRoute: function(path, method, req) {
-        method = method.toLowerCase();
-        return parse(req.url).pathname === path &&
-            method.indexOf(req.method.toLowerCase()) !== -1;
+    // Passively instantiate the session (either via cookie in req or
+    // because adminParty is active).
+    sessionPassive: function(req, res, next) {
+        if (req.cookies[this.args.key] || this.config.adminParty) {
+            this.session(req, res, next);
+        } else {
+            next();
+        }
     },
 
-    // Use session middleware if req has session cookie,
-    // path matches auth URL or we're having an admin party.
-    selectiveSession: function(req, res, next) {
-        if (
-            req.cookies[this.args.key] ||
-            this.config.adminParty ||
-            this.matchRoute(this.args.url, 'post delete', req)
-        ) {
+    // Actively instantiate the session with a POST/DELETE request
+    // to the auth endpoint.
+    sessionActive: function(req, res, next) {
+        if (_(['post', 'delete']).include(req.method.toLowerCase())) {
             this.session(req, res, next);
         } else {
             next();
@@ -83,20 +90,18 @@ router = Bones.Router.extend({
         next();
     },
 
+    // Always log in when we're having an admin party.
     admin: function(req, res, next) {
-        // Always log in when we're having an admin party.
-        new this.args.model({ id: 'admin' }, req.query).fetch({
-            success: function(model, resp) {
-                req.session.regenerate(function() {
-                    req.session.user = model;
-                    req.session.user.authenticated = true;
-                    this.status(req, res, next);
-                });
-            }.bind(this),
-            error: function() {
-                res.send({ error: 'User model failed to auto-login.' }, 500);
-            }.bind(this)
-        });
+        if (req.session && !req.session.user) {
+            var attr = _(this.args.adminParty).isBoolean()
+                ? {id:'admin'}
+                : this.args.adminParty;
+            req.session.user = new this.args.model(attr, req.query);
+            req.session.user.authenticated = true;
+            next();
+        } else {
+            next();
+        }
     },
 
     status: function(req, res, next) {
@@ -114,7 +119,7 @@ router = Bones.Router.extend({
     },
 
     getStatus: function(req, res, next) {
-        if (!this.matchRoute(this.args.url, 'get', req)) return next();
+        if (req.method.toLowerCase() !== 'get') return next();
 
         // Back out early when the user doesn't have any cookies set.
         if (!req.session && (!req.cookies || !req.cookies[this.args.key])) {
@@ -125,7 +130,7 @@ router = Bones.Router.extend({
     },
 
     login: function(req, res, next) {
-        if (!this.matchRoute(this.args.url, 'post', req)) return next();
+        if (req.method.toLowerCase() !== 'post') return next();
 
         // Back out early when data is missing.
         if (!req.body.id || !req.body.password) {
@@ -144,15 +149,15 @@ router = Bones.Router.extend({
                 } else {
                     res.send({ error: 'Access denied' }, 403);
                 }
-            }.bind(this),
+            },
             error: function() {
                 res.send({ error: 'Access denied' }, 403);
-            }.bind(this)
+            }
         });
     },
 
     logout: function(req, res, next) {
-        if (!this.matchRoute(this.args.url, 'delete', req)) return next();
+        if (req.method.toLowerCase() !== 'delete') return next();
 
         delete req.session.user;
         this.status(req, res, next);
