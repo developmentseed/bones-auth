@@ -1,4 +1,5 @@
-var crypto = require('crypto');
+var crypto = require('crypto'),
+    email = require('email');
 
 models['User'].secret = function() {
     return Bones.plugin.config.secret;
@@ -19,6 +20,7 @@ models['User'].augment({
         }
     }
 });
+
 
 // Override parse for Auth model. Filters out passwords server side
 // such that they are never returned to the client. The `password`
