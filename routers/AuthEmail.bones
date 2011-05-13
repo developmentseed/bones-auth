@@ -8,7 +8,7 @@ router = Bones.Router.extend({
 
         if (!args) args = {};
         args.model = args.model || models['User'];
-        args.url = args.url || '/api/AuthEmail/:id';
+        args.url = '/api/AuthEmail/:id';
 
         this.args = args;
         this.config = app.plugin.config;
