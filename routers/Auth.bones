@@ -1,4 +1,4 @@
-var writeHead = require('http').ServerResponse.prototype.writeHead;
+var parse = require('url').parse;
 
 // Authentication middleware
 // -------------------------
@@ -39,7 +39,7 @@ router = Bones.Router.extend({
     // Simple path/method matcher.
     matchRoute: function(path, method, req) {
         method = method.toLowerCase();
-        return req.url === path &&
+        return parse(req.url).pathname === path &&
             method.indexOf(req.method.toLowerCase()) !== -1;
     },
 
