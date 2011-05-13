@@ -3,5 +3,8 @@
     "version": "1.2.5",
     "scripts": {
         "test": "expresso"
+    },
+    "dependencies": {
+        "email": "0.2.3"
     }
 }
