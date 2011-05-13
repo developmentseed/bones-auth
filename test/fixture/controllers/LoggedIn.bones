@@ -1,16 +1,24 @@
 controller = Backbone.Controller.extend({
     routes: {
-        '/loggedin': 'loggedin',
+        '/session': 'session',
         '/model': 'model'
     },
 
-    loggedin: function() {
+    session: function() {
         this.res.send(JSON.stringify(this.req.session || false), 200);
     },
 
     model: function() {
         this.res.send(JSON.stringify({
-            isModel: this.req.session.user instanceof models.User
+            isAuthenticated: (
+                this.req.session &&
+                this.req.session.user &&
+                this.req.session.user.authenticated
+            ),
+            isModel: (
+                this.req.session &&
+                this.req.session.user instanceof models.User
+            )
         }), 200);
     }
 });

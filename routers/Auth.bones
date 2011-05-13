@@ -49,6 +49,7 @@ router = Bones.Router.extend({
         this.server.use(function(req, res, next) {
             if (req.session && req.session.user) {
                 req.session.user = new this.args.model(req.session.user);
+                req.session.user.authenticated = true;
             }
             next();
         }.bind(this));

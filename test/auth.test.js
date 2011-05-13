@@ -19,7 +19,7 @@ exports['test GET authentication'] = function(beforeExit) {
 exports['test session loading'] = function(beforeExit) {
     // Test that session isn't loaded
     assert.response(auth.server, {
-        url: '/loggedin'
+        url: '/session'
     }, {
         body: 'false',
         status: 200
@@ -27,7 +27,7 @@ exports['test session loading'] = function(beforeExit) {
 
     // Test anonymous session
     assert.response(auth.server, {
-        url: '/loggedin',
+        url: '/session',
         headers: {
             'cookie': 'bones.token=cc2a2513dfaa925dc0c7ef5cb33e612b'
         }
@@ -50,7 +50,7 @@ exports['test session loading'] = function(beforeExit) {
         status: 200
     }, function(res) {
         assert.response(auth.server, {
-            url: '/loggedin',
+            url: '/session',
             headers: {
                 'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
             }
@@ -70,6 +70,7 @@ exports['test session loading'] = function(beforeExit) {
         }, {
             status: 200
         }, function(res) {
+            assert.ok(JSON.parse(res.body).isAuthenticated);
             assert.ok(JSON.parse(res.body).isModel);
         });
     });
