@@ -5,6 +5,12 @@ var cache = {
     // Root user fixture
     'root': {
         id: 'root',
+        email: 'test@example.com',
+        password: '77d45868cf03167b44618aee53bad94c60b58744643bdd30e46f541b63df20c5'
+    },
+    // User with no email address
+    'noemail': {
+        id: 'noemail',
         password: '77d45868cf03167b44618aee53bad94c60b58744643bdd30e46f541b63df20c5'
     }
 };

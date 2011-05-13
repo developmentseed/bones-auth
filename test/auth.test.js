@@ -60,7 +60,7 @@ exports['test session loading'] = function(beforeExit) {
             var session = JSON.parse(res.body);
             assert.ok(session.lastAccess);
             assert.ok(session.cookie);
-            assert.deepEqual(session.user, { id: 'root' });
+            assert.deepEqual(session.user, { id: 'root', email: 'test@example.com' });
         });
         assert.response(auth.server, {
             url: '/model',
@@ -89,7 +89,6 @@ exports['test POST authentication'] = function (beforeExit) {
         body: '{"error":"Access denied"}',
         status: 403
     });
-
     assert.response(auth.server, {
         url: '/api/Auth',
         method: 'POST',
@@ -204,4 +203,48 @@ exports['test POST authentication'] = function (beforeExit) {
             });
         });
     });
+
+    // Test that non-existent users get access denied
+    assert.response(auth.server, {
+        url: '/api/AuthEmail/invalid',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
+    }, {
+        body: '{"error":"Access denied"}',
+        status: 403
+    });
+
+    // Test that users without email addresses send error
+    assert.response(auth.server, {
+        url: '/api/AuthEmail/noemail',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
+    }, {
+        body: '{"error":"Invalid email address"}',
+        status: 500
+    });
+
+    // Test that valid email addresses send confirmation
+    assert.response(auth.server, {
+        url: '/api/AuthEmail/root',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
+    }, {
+        body: '{"message":"Email has been sent"}',
+        status: 200
+    });
+
+
 };
