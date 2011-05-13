@@ -62,6 +62,16 @@ exports['test session loading'] = function(beforeExit) {
             assert.ok(session.cookie);
             assert.deepEqual(session.user, { id: 'root' });
         });
+        assert.response(auth.server, {
+            url: '/model',
+            headers: {
+                'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+            }
+        }, {
+            status: 200
+        }, function(res) {
+            assert.ok(JSON.parse(res.body).isModel);
+        });
     });
 };
 
