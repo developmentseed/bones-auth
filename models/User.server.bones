@@ -9,20 +9,27 @@ models['User'].hash = function(string) {
     return crypto.createHmac('sha256', this.secret()).update(string).digest('hex');
 };
 
+// Override sync for User model. Filters out passwords server side
+// such that they are never returned to the client. The `password`
+// property is preserved on the model instance enabling authentication
+// code to access the password directly.
+//
+// When overridding this method with a custom sync, make sure to include
+// the password filtering logic. @TODO: better way of ensuring this override
+// occurs on extending models.
 models['User'].augment({
     sync: function(parent, method, model, success, error) {
+        // Don't write the passwordConfirm attribute.
         model.unset('passwordConfirm', { silent: true });
-        Backbone.sync(method, model, success, error);
+        // Filter out `resp.password`.
+        var successFilter = function(resp) {
+            var filtered = _(resp).clone();
+            if (method === 'read' && _(filtered.password).isString()) {
+                model.password = filtered.password;
+                delete filtered.password;
+            }
+            success(filtered);
+        };
+        Backbone.sync(method, model, successFilter, error);
     }
 });
-
-
-// Override parse for Auth model. Filters out passwords server side
-// such that they are never returned to the client. The `password`
-// property is preserved on the original response object enabling
-// authentication code to access the response directly.
-models['User'].prototype.parse = function(resp) {
-    var filtered = _.clone(resp);
-    !_.isUndefined(filtered.password) && (delete filtered.password);
-    return filtered;
-};

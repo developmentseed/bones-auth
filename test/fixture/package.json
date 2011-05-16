@@ -1,7 +1,4 @@
 {
     "name": "bones-document#fixture",
-    "version": "0.0.1",
-    "dependencies": {
-        "backbone-stash": "= 0.0.4"
-    }
+    "version": "0.0.1"
 }

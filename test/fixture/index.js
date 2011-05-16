@@ -19,9 +19,10 @@ require('bones').Backbone.sync = function(method, model, success, error) {
     if (method === 'read') {
         if (model.id && model.id in cache) {
             return success(cache[model.id]);
+        } else if (model.models) {
+            return success([cache.root, cache.noemail]);
         }
     }
-
     error();
 };
 

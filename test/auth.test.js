@@ -8,6 +8,23 @@ require('./fixture');
 var fixture = require('bones').plugin;
 var auth = new fixture.servers['Auth'](fixture);
 
+exports['test GET user model'] = function(beforeExit) {
+    assert.response(auth.server, {
+        url: '/api/User/root',
+        method: 'GET'
+    }, {
+        body: '{"id":"root","email":"test@example.com"}',
+        status: 200
+    });
+    assert.response(auth.server, {
+        url: '/api/User',
+        method: 'GET'
+    }, {
+        body: '[{"id":"root","email":"test@example.com"},{"id":"noemail"}]',
+        status: 200
+    });
+};
+
 exports['test GET authentication'] = function(beforeExit) {
     assert.response(auth.server, {
         url: '/api/Auth',

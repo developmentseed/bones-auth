@@ -140,7 +140,7 @@ router = Bones.Router.extend({
         var status = this.status.bind(this);
         new this.args.model({ id: req.body.id }, req.query).fetch({
             success: function(model, resp) {
-                if (resp.password === req.body.password) {
+                if (model.password === req.body.password) {
                     req.session.regenerate(function() {
                         req.session.user = model;
                         req.session.user.authenticated = true;
