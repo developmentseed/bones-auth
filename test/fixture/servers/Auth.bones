@@ -1,10 +1,8 @@
-server = Bones.Server.extend();
+server = Bones.Server.augment({
+    middleware: function(parent, plugin) {
+        parent.apply(this, arguments);
+        routers['Auth'].register(this);
+        routers['AuthEmail'].register(this);
+    }
+});
 
-server.prototype.initialize = function() {
-    routers['Auth'].register(this);
-    routers['AuthEmail'].register(this);
-    routers['Core'].register(this);
-    models['User'].register(this);
-    models['Users'].register(this);
-    controllers['LoggedIn'].register(this);
-};
