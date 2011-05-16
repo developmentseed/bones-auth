@@ -109,7 +109,7 @@ router = Bones.Router.extend({
         if (req.session.user) {
             // Keep the session fresh.
             req.session.touch();
-            res.send({ id: req.session.user.id });
+            res.send(req.session.user.toJSON());
         } else {
             // There's no user object, so we'll just destroy the session.
             res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));

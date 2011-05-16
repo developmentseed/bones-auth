@@ -65,7 +65,7 @@ exports['test session loading'] = function(beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "9e970a6908c7b53fced9a2e46634b41d", id: 'root', password: 'test' })
     }, {
-        body: '{"id":"root"}',
+        body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
         assert.response(auth.server, {
@@ -272,7 +272,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
     }, {
-        body: '{"id":"root"}',
+        body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
         assert.response(auth.server, {
@@ -282,7 +282,7 @@ exports['test POST authentication'] = function (beforeExit) {
                 'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
             }
         }, {
-            body: '{"id":"root"}',
+            body: '{"id":"root","email":"test@example.com"}',
             status: 200
         }, function(res) {
             assert.response(auth.server, {
