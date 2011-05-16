@@ -45,6 +45,7 @@ command = Bones.Command.extend({
         description: 'create a new user account',
         command: function(argv, callback) {
             if (argv._[2] && argv._[3]) {
+                argv._[3] = models.User.hash(argv._[3]);
                 var user = new models.User({id: argv._[2], password: argv._[3]});
                 user.save({}, {
                     success: function(model, resp) {
