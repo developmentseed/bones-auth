@@ -1,3 +1,5 @@
+process.env.NODE_ENV = 'test';
+
 var assert = require('assert');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
@@ -86,9 +88,24 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
     }, {
-        body: '{"error":"Access denied"}',
+        body: 'Forbidden',
         status: 403
     });
+
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
+    }, {
+        body: '{"message":"Forbidden"}',
+        status: 403
+    });
+
     assert.response(auth.server, {
         url: '/api/Auth',
         method: 'POST',
@@ -98,7 +115,21 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root' })
     }, {
-        body: '{"error":"Access denied"}',
+        body: 'Forbidden',
+        status: 403
+    });
+
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root' })
+    }, {
+        body: '{"message":"Forbidden"}',
         status: 403
     });
 
@@ -111,7 +142,21 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", password: 'test' })
     }, {
-        body: '{"error":"Access denied"}',
+        body: 'Forbidden',
+        status: 403
+    });
+
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", password: 'test' })
+    }, {
+        body: '{"message":"Forbidden"}',
         status: 403
     });
 
@@ -124,7 +169,21 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'bar' })
     }, {
-        body: '{"error":"Access denied"}',
+        body: 'Forbidden',
+        status: 403
+    });
+
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'bar' })
+    }, {
+        body: '{"message":"Forbidden"}',
         status: 403
     });
 
@@ -142,6 +201,22 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
+
+    // Test login without token in body
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ id: 'root', password: 'test' })
+    }, {
+        body: '{"message":"Forbidden"}',
+        status: 403
+    });
+
     // Test login without token in cookie
     assert.response(auth.server, {
         url: '/api/Auth',
@@ -152,6 +227,21 @@ exports['test POST authentication'] = function (beforeExit) {
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
     }, {
         body: 'Forbidden',
+        status: 403
+    });
+
+
+    // Test login without token in cookie
+    assert.response(auth.server, {
+        url: '/api/Auth',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
+    }, {
+        body: '{"message":"Forbidden"}',
         status: 403
     });
 

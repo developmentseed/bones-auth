@@ -134,7 +134,7 @@ router = Bones.Router.extend({
 
         // Back out early when data is missing.
         if (!req.body.id || !req.body.password) {
-            return res.send({ error: 'Access denied' }, 403);
+            return next(new Error.HTTP(403));
         }
 
         var status = this.status.bind(this);
@@ -147,11 +147,11 @@ router = Bones.Router.extend({
                         status(req, res, next);
                     });
                 } else {
-                    res.send({ error: 'Access denied' }, 403);
+                    next(new Error.HTTP(403));
                 }
             },
             error: function() {
-                res.send({ error: 'Access denied' }, 403);
+                next(new Error.HTTP(403));
             }
         });
     },
