@@ -6,17 +6,17 @@ var fs = require('fs');
 
 require('./fixture');
 var fixture = require('bones').plugin;
-var auth = new fixture.servers['Auth'](fixture);
+var server = new fixture.servers['Core'](fixture);
 
 exports['test GET user model'] = function(beforeExit) {
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/User/root',
         method: 'GET'
     }, {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     });
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/User',
         method: 'GET'
     }, {
@@ -26,7 +26,7 @@ exports['test GET user model'] = function(beforeExit) {
 };
 
 exports['test GET authentication'] = function(beforeExit) {
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'GET'
     }, {
@@ -37,7 +37,7 @@ exports['test GET authentication'] = function(beforeExit) {
 
 exports['test session loading'] = function(beforeExit) {
     // Test that session isn't loaded
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/session'
     }, {
         body: 'false',
@@ -45,7 +45,7 @@ exports['test session loading'] = function(beforeExit) {
     });
 
     // Test anonymous session
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/session',
         headers: {
             'cookie': 'bones.token=cc2a2513dfaa925dc0c7ef5cb33e612b'
@@ -56,7 +56,7 @@ exports['test session loading'] = function(beforeExit) {
     });
 
     // Test real session
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -68,7 +68,7 @@ exports['test session loading'] = function(beforeExit) {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
-        assert.response(auth.server, {
+        assert.response(server, {
             url: '/session',
             headers: {
                 'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
@@ -81,7 +81,7 @@ exports['test session loading'] = function(beforeExit) {
             assert.ok(session.cookie);
             assert.deepEqual(session.user, { id: 'root', email: 'test@example.com' });
         });
-        assert.response(auth.server, {
+        assert.response(server, {
             url: '/model',
             headers: {
                 'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
@@ -96,7 +96,7 @@ exports['test session loading'] = function(beforeExit) {
 };
 
 exports['test POST authentication'] = function (beforeExit) {
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -109,7 +109,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -123,7 +123,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -136,7 +136,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -150,7 +150,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -163,7 +163,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -177,7 +177,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -190,7 +190,7 @@ exports['test POST authentication'] = function (beforeExit) {
         status: 403
     });
 
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -205,7 +205,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test login without token in body
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -220,7 +220,7 @@ exports['test POST authentication'] = function (beforeExit) {
 
 
     // Test login without token in body
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -235,7 +235,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test login without token in cookie
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -249,7 +249,7 @@ exports['test POST authentication'] = function (beforeExit) {
 
 
     // Test login without token in cookie
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -263,7 +263,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test login-status-logout sequence.
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
         headers: {
@@ -275,7 +275,7 @@ exports['test POST authentication'] = function (beforeExit) {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
-        assert.response(auth.server, {
+        assert.response(server, {
             url: '/api/Auth',
             method: 'GET',
             headers: {
@@ -285,7 +285,7 @@ exports['test POST authentication'] = function (beforeExit) {
             body: '{"id":"root","email":"test@example.com"}',
             status: 200
         }, function(res) {
-            assert.response(auth.server, {
+            assert.response(server, {
                 url: '/api/Auth',
                 method: 'DELETE',
                 headers: {
@@ -298,7 +298,7 @@ exports['test POST authentication'] = function (beforeExit) {
                 status: 200
             }, function(res) {
                 assert.ok(/^connect.sid=;/.test(res.headers['set-cookie'][0]));
-                assert.response(auth.server, {
+                assert.response(server, {
                     url: '/api/Auth',
                     method: 'GET'
                 }, {
@@ -312,7 +312,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test that non-existent users get access denied
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/AuthEmail/invalid',
         method: 'POST',
         headers: {
@@ -327,7 +327,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test that users without email addresses send error
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/AuthEmail/noemail',
         method: 'POST',
         headers: {
@@ -342,7 +342,7 @@ exports['test POST authentication'] = function (beforeExit) {
     });
 
     // Test that users with invalid email addresses send error
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/AuthEmail/invalidemail',
         method: 'POST',
         headers: {
@@ -358,7 +358,7 @@ exports['test POST authentication'] = function (beforeExit) {
 
 
     // Test that valid email addresses send confirmation
-    assert.response(auth.server, {
+    assert.response(server, {
         url: '/api/AuthEmail/root',
         method: 'POST',
         headers: {
@@ -370,6 +370,4 @@ exports['test POST authentication'] = function (beforeExit) {
         body: '{"message":"Email has been sent"}',
         status: 200
     });
-
-
 };
