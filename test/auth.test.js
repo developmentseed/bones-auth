@@ -347,12 +347,13 @@ exports['test POST authentication'] = function (beforeExit) {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
-            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4',
+            'accept': 'application/json'
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
     }, {
-        body: 'Invalid email address',
-        status: 500
+        body: '{"message":"Invalid email address"}',
+        status: 400
     });
 
 
