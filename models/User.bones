@@ -40,8 +40,13 @@ var User = {
     },
 
     success: function(data) {
-        this.set(data);
-        this.authenticated = data.id !== null;
+        if (data.id !== null) {
+            this.set(data);
+            this.authenticated = true;
+        } else {
+            this.clear();
+            this.authenticated = false;
+        }
         this.trigger('auth:status', this);
     },
 
