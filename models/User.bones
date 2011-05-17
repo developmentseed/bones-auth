@@ -103,6 +103,29 @@ var User = {
         return this.request('DELETE', params);
     },
 
+    resetPassword: function(params) {
+        if (!params) params = {};
+
+        var url = '/api/AuthEmail/' + params.id;
+        url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
+
+        // Grab CSRF protection cookie and merge into `params`.
+        params['bones.token'] = Backbone.csrf(url);
+
+        // Make the request.
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            processData: false,
+            data: JSON.stringify(params),
+            dataType: 'json',
+            success: params.success || console.log(arguments),
+            error: params.error || console.log(arguments)
+        });
+
+        return this;
+    },
     validate: function(attr) {
         // Login.
         if (!_.isUndefined(attr.id) && !_.isUndefined(attr.password)) {

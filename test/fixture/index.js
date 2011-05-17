@@ -12,6 +12,12 @@ var cache = {
     'noemail': {
         id: 'noemail',
         password: '77d45868cf03167b44618aee53bad94c60b58744643bdd30e46f541b63df20c5'
+    },
+    // Invalid email address
+    invalidemail: {
+        id: 'invalidemail',
+        email: 'so not a valid email address!',
+        password: '77d45868cf03167b44618aee53bad94c60b58744643bdd30e46f541b63df20c5'
     }
 };
 

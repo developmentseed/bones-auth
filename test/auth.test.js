@@ -335,9 +335,24 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
     }, {
-        body: '{"error":"Invalid email address"}',
+        body: 'Invalid email address',
         status: 500
     });
+
+    // Test that users with invalid email addresses send error
+    assert.response(auth.server, {
+        url: '/api/AuthEmail/invalidemail',
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+            'cookie': 'bones.token=1f4a1137268b8e384e50d0fb72c627c4'
+        },
+        body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
+    }, {
+        body: 'Invalid email address',
+        status: 500
+    });
+
 
     // Test that valid email addresses send confirmation
     assert.response(auth.server, {

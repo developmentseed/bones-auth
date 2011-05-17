@@ -7,7 +7,8 @@ view = Backbone.View.extend({
     context: null,
 
     events: {
-        'click input[type=submit]': 'auth'
+        'click input[type=submit]': 'auth',
+        'click a#reset-password': 'resetPassword'
     },
 
     initialize: function(options) {
@@ -34,6 +35,15 @@ view = Backbone.View.extend({
     attach: function () {
         this.context.prepend(this.el);
         return this;
+    },
+
+    resetPassword: function() {
+        new views.ResetPassword({
+            title: 'Reset password',
+            model: this.model,
+            admin: this.admin
+        });
+        return false;
     },
 
     auth: function() {

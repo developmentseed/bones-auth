@@ -4,4 +4,5 @@
     <label for='password'>Password</label>
     <input size='10' type='password' name='password' />
     <input type='submit' value='Login' />
+    <a id='reset-password'>Forgot your password?</a>
 </form>
