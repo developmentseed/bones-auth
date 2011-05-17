@@ -21,14 +21,14 @@ router = Bones.Router.extend({
         new this.args.model({id: req.params.id}).fetch({
             success: function(model, resp) {
                 if (!model.get('email')) {
-                    res.send({ error: 'Invalid email address' }, 500);
+                    next(new Error.HTTP('Invalid email address', 400));
                 }
                 else {
                     res.send({message: 'Email has been sent'});
                 }
             },
             error: function() {
-                res.send({ error: 'Access denied' }, 403);
+                next(new Error.HTTP(403));
             }
         });
     }
