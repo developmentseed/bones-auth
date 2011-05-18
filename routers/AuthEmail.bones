@@ -91,7 +91,6 @@ router = Bones.Router.extend({
 
         var body = bodyTemplate({ token: token });
 
-        console.log(body);
         var mail = new email.Email({
             from: Bones.plugin.config.adminEmail || 'test@example.com',
             to: '<' + model.get('email') + '>',
