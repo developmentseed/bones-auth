@@ -53,7 +53,7 @@ var User = {
     error: function(xhr) {
         try {
             var data = $.parseJSON(xhr.responseText);
-            data = data.error || data;
+            data = data.message || data;
         } catch(e) {
             var data = xhr.responseText;
         }
