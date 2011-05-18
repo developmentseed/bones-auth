@@ -10,6 +10,7 @@ router = Bones.Router.extend({
 
         if (!args) args = {};
         args.model = args.model || models['User'];
+        args.key = args.key || 'connect.sid';
 
         this.args = args;
 
@@ -54,6 +55,8 @@ router = Bones.Router.extend({
 
     // Generate a new session for the user identified by the token.
     tokenLogin: function(req, res, next) {
+        if (req.method.toLowerCase() !== 'get') return next();
+
         var content = this.decryptRequest(req.params.id);
         var matches = /^(.*)-(.*)$/.exec(content);
 
@@ -69,12 +72,29 @@ router = Bones.Router.extend({
                 earliest = parseInt(this.generateTimecode(d));
 
             if (tokenTime >= earliest && tokenTime <= current) {
+                debugger;
+                // TODO: log in user.
+                /*var status = routers.Auth.prototype.status.bind(this);
+
+                new this.args.model({ id: tokenId }).fetch({
+                    success: function(model, resp) {
+                        req.session.regenerate(function() {
+                            req.session.user = model;
+                            req.session.user.authenticated = true;
+                            status(req, res, next);
+                        });
+                    },
+                    error: function() {
+                        next(new Error.HTTP(403));
+                    }
+                });*/
+
                 res.send('success!');
             } else {
-                next(new Error.HTTP('Forbidden', 403));
+                next(new Error.HTTP(403));
             }
         } else {
-            next(new Error.HTTP('Forbidden', 403));
+            next(new Error.HTTP(403));
         }
     },
 
@@ -103,6 +123,8 @@ router = Bones.Router.extend({
 
     // Send an email to the user containing a login link with a token.
     authEmail: function(req, res, next) {
+        if (req.method.toLowerCase() !== 'post') return next();
+
         var that = this;
 
         new this.args.model({id: req.params.id}).fetch({

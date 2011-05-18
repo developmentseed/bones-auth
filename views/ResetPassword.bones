@@ -1,13 +1,17 @@
 // ResetPassword
 // -------------
-if (views.AdminPopup) view = views.AdminPopup.extend({
-    events: _.extend({
+view = Backbone.View.extend({
+    className: 'admin',
+    events: {
         'click input[type=submit]': 'submit'
-    }, views.AdminPopup.prototype.events),
+    },
     initialize: function (options) {
-        _.bindAll(this, 'submit');
-        this.content = templates['ResetPassword'](this.model);
-        views.AdminPopup.prototype.initialize.call(this, options);
+        _.bindAll(this, 'render', 'attach', 'submit');
+        this.render().trigger('attach');
+    },
+    render: function() {
+        $(this.el).empty().append(templates['ResetPassword'](this.model));
+        return this;
     },
     submit: function() {
         var that = this;
@@ -16,10 +20,10 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
             success: function(resp) {
                 var resp = resp || {message: 'Reset password'};
                 new views.AdminGrowl(resp);
-                that.close();
+                //that.close();
             },
             error: function(resp) {
-                that.admin.error(that.model, resp);
+                //that.admin.error(that.model, resp);
             }
         } 
         params.id && this.model.resetPassword(params);
