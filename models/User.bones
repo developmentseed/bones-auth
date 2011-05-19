@@ -53,7 +53,7 @@ var User = {
     error: function(xhr) {
         try {
             var data = $.parseJSON(xhr.responseText);
-            data = data.error || data;
+            data = data.message || data;
         } catch(e) {
             var data = xhr.responseText;
         }
@@ -71,6 +71,8 @@ var User = {
         }
 
         var url = _.isFunction(this.authUrl) ? this.authUrl() : this.authUrl;
+        url = params.url || url;
+
         url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
 
         // Grab CSRF protection cookie and merge into `params`.
@@ -84,8 +86,8 @@ var User = {
             processData: method === 'GET',
             data: method === 'GET' ? params : JSON.stringify(params),
             dataType: 'json',
-            success: this.success,
-            error: this.error
+            success: params.success || this.success,
+            error: params.error || this.error
         });
 
         return this;
@@ -104,27 +106,17 @@ var User = {
     },
 
     resetPassword: function(params) {
-        if (!params) params = {};
+        _.defaults(params, { url : '/api/AuthEmail/' + params.id });
 
-        var url = '/api/AuthEmail/' + params.id;
-        url += (/\?/.test(url) ? '&' : '?') + '_=' + $.now();
+        return this.request('POST', params);
+    },
+    tokenLogin: function(params) {
+        if (params.token) {
+            params.url = '/api/AuthEmail/' + params.token;
+            delete params.token;
+        }
 
-        // Grab CSRF protection cookie and merge into `params`.
-        params['bones.token'] = Backbone.csrf(url);
-
-        // Make the request.
-        $.ajax({
-            url: url,
-            type: 'POST',
-            contentType: 'application/json',
-            processData: false,
-            data: JSON.stringify(params),
-            dataType: 'json',
-            success: params.success || console.log(arguments),
-            error: params.error || console.log(arguments)
-        });
-
-        return this;
+        return this.request('GET', params);
     },
     validate: function(attr) {
         // Login.

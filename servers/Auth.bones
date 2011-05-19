@@ -20,7 +20,7 @@ server = Bones.Server.extend();
 server.prototype.initialize = function(plugin, args) {
     if (!args) args = {};
     args.model = args.model || models['User'];
-    args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
+    args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 });
     args.url = args.url || '/api/Auth';
     args.key = args.key || 'connect.sid';
 
