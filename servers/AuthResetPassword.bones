@@ -101,7 +101,6 @@ servers.Auth.prototype.generateEmail = function(model, req) {
 servers.Auth.prototype.authEmail = function(req, res, next) {
     var that = this;
 
-    // TODO: How is this access-protected?
     new this.args.model({id: req.params.id}).fetch({
         success: function(model, resp) {
             if (!model.get('email') || !email.isValidAddress(model.get('email'))) {

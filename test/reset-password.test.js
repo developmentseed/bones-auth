@@ -9,7 +9,6 @@ var fixture = require('bones').plugin;
 var server = new fixture.servers['Core'](fixture);
 
 exports['test password reset'] = function() {
-    
     // Test that non-existent users get access denied
     assert.response(server, {
         url: '/api/reset-password/invalid',
