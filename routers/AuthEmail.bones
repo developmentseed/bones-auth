@@ -100,11 +100,12 @@ routers.Auth.prototype.tokenLogin = function(req, res, next) {
 }
 
 // Generate an email object with a login token.
-routers.Auth.prototype.generateEmail = function(model) {
+routers.Auth.prototype.generateEmail = function(model, req) {
     var token = this.encryptRequest(
         this.generateTimecode(new Date()) + '-' + model.id
     );
 
+    debugger;
     var bodyTemplate = _.template([
         "You password has been reset.",
         "Please go to http://localhost:3000/api/AuthEmail/<%= token %>."
@@ -134,7 +135,7 @@ routers.Auth.prototype.authEmail = function(req, res, next) {
                 next(new Error.HTTP('Invalid email address', 400));
             }
             else {
-                that.generateEmail(model).send(function(err) {
+                that.generateEmail(model, req).send(function(err) {
                     if (err) {
                         res.send('Could not send email.<br /> Contact your administrator', 500);
                     }
