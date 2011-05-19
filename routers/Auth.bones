@@ -16,7 +16,7 @@ var parse = require('url').parse;
 //   the default logged in user.  For *development convenience only* -- should
 //   never be used in production.
 router = Bones.Router.extend({
-    initialize: _.once(function(app, args) {
+    initialize: function(app, args) {
         if (!args) args = {};
         args.model = args.model || models['User'];
         args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 }),
@@ -42,7 +42,7 @@ router = Bones.Router.extend({
         this.server.use(this.args.url, this.getStatus.bind(this));
         this.server.use(this.args.url, this.login.bind(this));
         this.server.use(this.args.url, this.logout.bind(this));
-    }),
+    },
 
     // Passively instantiate the session (either via cookie in req or
     // because adminParty is active).

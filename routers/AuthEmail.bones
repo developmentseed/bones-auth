@@ -18,7 +18,7 @@ var secret = random(64).toString('binary');
 // Email verification middleware
 // ----------------------------
 routers.Auth.augment({
-    initialize: _.once(function(parent, app, args) {
+    initialize: function(parent, app, args) {
         parent.call(this, app, args);
 
         var url = '/api/AuthEmail/:id';
@@ -35,7 +35,7 @@ routers.Auth.augment({
 
         this.server.post(url, this.authEmail);
         this.server.get(url, this.session, this.tokenLogin);
-    })
+    }
 });
 
 
