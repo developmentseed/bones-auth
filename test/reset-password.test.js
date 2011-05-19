@@ -12,7 +12,7 @@ exports['test password reset'] = function() {
     
     // Test that non-existent users get access denied
     assert.response(server, {
-        url: '/api/AuthEmail/invalid',
+        url: '/api/reset-password/invalid',
         method: 'POST',
         headers: {
             'content-type': 'application/json',
@@ -27,7 +27,7 @@ exports['test password reset'] = function() {
 
     // Test that users without email addresses send error
     assert.response(server, {
-        url: '/api/AuthEmail/noemail',
+        url: '/api/reset-password/noemail',
         method: 'POST',
         headers: {
             'content-type': 'application/json',
@@ -42,7 +42,7 @@ exports['test password reset'] = function() {
 
     // Test that users with invalid email addresses send error
     assert.response(server, {
-        url: '/api/AuthEmail/invalidemail',
+        url: '/api/reset-password/invalidemail',
         method: 'POST',
         headers: {
             'content-type': 'application/json',
@@ -58,7 +58,7 @@ exports['test password reset'] = function() {
 
     // Test that valid email addresses send confirmation
     assert.response(server, {
-        url: '/api/AuthEmail/root',
+        url: '/api/reset-password/root',
         method: 'POST',
         headers: {
             'content-type': 'application/json',

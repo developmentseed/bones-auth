@@ -58,7 +58,7 @@ command.prototype.add = {
                 }
             });
         } else {
-            console.log('Usage: %s %s',argv.$0, this.name);
+            console.log('Usage: %s %s', argv.$0, this.name);
         }
     }
 };

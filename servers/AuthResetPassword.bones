@@ -9,7 +9,7 @@ servers.Auth.augment({
     initialize: function(parent, app, args) {
         parent.call(this, app, args);
 
-        var url = '/api/AuthEmail/:id';
+        var url = '/api/reset-password/:id';
 
         if (!args) args = {};
         args.model = args.model || models['User'];
@@ -84,12 +84,7 @@ servers.Auth.prototype.generateEmail = function(model, req) {
     var secret = this.args.model.secret();
     var token = this.encryptExpiringRequest(model.id, secret);
 
-    var bodyTemplate = _.template([
-        "You password has been reset.",
-        "Please follow <a href='http://<%= host %>/reset-password/<%= token %>'>this link.</a>"
-    ].join("\n"));
-
-    var body = bodyTemplate({ token: token, host: req.headers.host });
+    var body = templates.ResetPasswordEmail({ token: token, host: req.headers.host });
 
     var mail = new email.Email({
         from: Bones.plugin.config.adminEmail || 'test@example.com',
@@ -104,10 +99,9 @@ servers.Auth.prototype.generateEmail = function(model, req) {
 
 // Send an email to the user containing a login link with a token.
 servers.Auth.prototype.authEmail = function(req, res, next) {
-    if (req.method.toLowerCase() !== 'post') return next();
-
     var that = this;
 
+    // TODO: How is this access-protected?
     new this.args.model({id: req.params.id}).fetch({
         success: function(model, resp) {
             if (!model.get('email') || !email.isValidAddress(model.get('email'))) {

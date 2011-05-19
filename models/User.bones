@@ -106,13 +106,13 @@ var User = {
     },
 
     resetPassword: function(params) {
-        _.defaults(params, { url : '/api/AuthEmail/' + params.id });
+        _.defaults(params, { url : '/api/reset-password/' + params.id });
 
         return this.request('POST', params);
     },
     tokenLogin: function(params) {
         if (params.token) {
-            params.url = '/api/AuthEmail/' + params.token;
+            params.url = '/api/reset-password/' + params.token;
             delete params.token;
         }
 
