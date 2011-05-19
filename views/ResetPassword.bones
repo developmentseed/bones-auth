@@ -6,7 +6,7 @@ view = Backbone.View.extend({
         'click input[type=submit]': 'submit'
     },
     initialize: function (options) {
-        _.bindAll(this, 'render', 'attach', 'submit');
+        _.bindAll(this, 'render', 'submit');
         this.render().trigger('attach');
     },
     render: function() {

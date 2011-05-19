@@ -108,14 +108,15 @@ routers.Auth.prototype.generateEmail = function(model, req) {
     debugger;
     var bodyTemplate = _.template([
         "You password has been reset.",
-        "Please go to http://localhost:3000/api/AuthEmail/<%= token %>."
+        "Please follow <a href='http://<%= host %>/reset-password/<%= token %>'>this link.</a>"
     ].join("\n"));
 
-    var body = bodyTemplate({ token: token });
+    var body = bodyTemplate({ token: token, host: req.headers.host });
 
     var mail = new email.Email({
         from: Bones.plugin.config.adminEmail || 'test@example.com',
         to: '<' + model.get('email') + '>',
+        bodyType: 'html',
         subject: 'Your password has been reset.',
         body: body
     });

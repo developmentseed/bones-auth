@@ -26,7 +26,8 @@ controller = Backbone.Controller.extend({
                 $.ajaxSetup({ cache: !user.authenticated });
             });
 
-            location.hash = '';
+            location.hash = '!/';
         }
+        this.res && this.res.redirect('/#!' + this.req.url);
     },
 });
