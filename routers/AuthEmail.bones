@@ -1,8 +1,7 @@
 var email = require('email'),
     crypto = require('crypto'),
     fs = require('fs'),
-    Buffer = require('buffer').Buffer,
-    zlib = require('zlib');
+    Buffer = require('buffer').Buffer;
 
 function random(bytes) {
     var fd = fs.openSync('/dev/random', 'r');
