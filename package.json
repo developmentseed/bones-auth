@@ -5,6 +5,7 @@
         "test": "expresso"
     },
     "dependencies": {
-        "email": "0.2.3"
+        "email": "0.2.3",
+        "zlib": "1.0.2"
     }
 }

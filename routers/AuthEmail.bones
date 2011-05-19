@@ -1,5 +1,19 @@
 var email = require('email'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    fs = require('fs'),
+    Buffer = require('buffer').Buffer,
+    zlib = require('zlib');
+
+function random(bytes) {
+    var fd = fs.openSync('/dev/random', 'r');
+    var buf = new Buffer(bytes);
+    fs.readSync(fd, buf, 0, buf.length, 0);
+    fs.closeSync(fd);
+    return buf;
+}
+
+// 512 bit key.
+var secret = random(64).toString('binary');
 
 
 // Email verification middleware
@@ -38,62 +52,52 @@ routers.Auth.prototype.generateTimecode = function(d) {
 }
 
 // Turn a string into a hex token encrypted with the secret.
-routers.Auth.prototype.encryptRequest = function(data) {
-    var cipher = crypto.createCipher(
-        Bones.plugin.config.encryptionAlgorithm || 'aes256',
-        Bones.plugin.config.secret || 'sensible default required!'
-    );
-
-    return cipher.update(data, 'utf8', 'hex') + cipher.final('hex');
+routers.Auth.prototype.encryptExpiringRequest = function(data, secret) {
+    data = new Buffer(JSON.stringify(data), 'utf8').toString('binary');
+    var cipher = crypto.createCipher('aes-256-cfb', secret);
+    var timestamp = (Date.now() / 1000).toFixed();
+    while (timestamp.length < 10) timestamp = '0' + timestamp;
+    var hash = crypto.createHash('sha256').update(secret).update(timestamp).update(data).digest('binary');
+    var request = cipher.update(hash, 'binary', 'binary') +
+                  cipher.update(timestamp, 'binary', 'binary') +
+                  cipher.update(data, 'binary', 'binary') +
+                  cipher['final']('binary');
+    return new Buffer(request, 'binary').toString('base64');
 }
 
 // Decrypt a token.
-routers.Auth.prototype.decryptRequest = function(data) {
-    var decipher = crypto.createDecipher(
-        Bones.plugin.config.encryptionAlgorithm || 'aes256',
-        Bones.plugin.config.secret || 'sensible default required!'
-    );
-
-    return decipher.update(data, 'hex', 'utf8') + decipher.final('utf8');
+routers.Auth.prototype.decryptExpiringRequest = function(data, secret, maxAge) {
+    if (typeof maxAge === 'undefined') maxAge = 86400;
+    var decipher = crypto.createDecipher('aes-256-cfb', secret);
+    var request = decipher.update(data, 'base64', 'binary') + decipher['final']('binary');
+    var hash = crypto.createHash('sha256').update(secret).update(request.substring(32)).digest('binary');
+    if (hash !== request.substring(0, hash.length)) return undefined;
+    var timestamp = parseInt(request.substring(hash.length, hash.length + 10), 10);
+    if ((Date.now() / 1000).toFixed() > (timestamp + maxAge)) return undefined;
+    return JSON.parse(new Buffer(request.substring(hash.length + 10), 'binary').toString('utf8'));
 }
 
 // Generate a new session for the user identified by the token.
 routers.Auth.prototype.tokenLogin = function(req, res, next) {
     if (req.method.toLowerCase() !== 'get') return next();
 
-    var content = this.decryptRequest(req.params.id);
-    var matches = /^(.*)-(.*)$/.exec(content);
+    var tokenId = this.decryptExpiringRequest(req.params.id, secret);
 
-    if (matches && matches[1] && matches[2]) {
-        var tokenTime = parseInt(matches[1]),
-        tokenId = matches[2];
+    if (tokenId) {
+        var status = this.status.bind(this);
+        new this.args.model({ id: tokenId }).fetch({
+            success: function(model, resp) {
+                req.session.regenerate(function() {
+                    req.session.user = model;
+                    req.session.user.authenticated = true;
+                    status(req, res, next);
+                });
+            },
+            error: function() {
+                next(new Error.HTTP(403));
+            }
+        });
 
-        // Only accept tokens generated in the last 24 hours.
-        var d = new Date();
-        d.setUTCDate(d.getUTCDate() - 1);
-
-        var current = parseInt(this.generateTimecode(new Date())),
-        earliest = parseInt(this.generateTimecode(d));
-
-        if (tokenTime >= earliest && tokenTime <= current) {
-            // TODO: log in user.
-            var status = this.status.bind(this);
-            new this.args.model({ id: tokenId }).fetch({
-                success: function(model, resp) {
-                    req.session.regenerate(function() {
-                        req.session.user = model;
-                        req.session.user.authenticated = true;
-                        status(req, res, next);
-                    });
-                },
-                error: function() {
-                    next(new Error.HTTP(403));
-                }
-            });
-
-        } else {
-            next(new Error.HTTP(403));
-        }
     } else {
         next(new Error.HTTP(403));
     }
@@ -101,11 +105,8 @@ routers.Auth.prototype.tokenLogin = function(req, res, next) {
 
 // Generate an email object with a login token.
 routers.Auth.prototype.generateEmail = function(model, req) {
-    var token = this.encryptRequest(
-        this.generateTimecode(new Date()) + '-' + model.id
-    );
+    var token = this.encryptExpiringRequest(model.id, secret);
 
-    debugger;
     var bodyTemplate = _.template([
         "You password has been reset.",
         "Please follow <a href='http://<%= host %>/reset-password/<%= token %>'>this link.</a>"
