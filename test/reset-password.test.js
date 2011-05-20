@@ -120,6 +120,14 @@ exports['test logging in with token'] = function() {
             status: 403
         });
     });
+
+    // Second login with token must fail.
+    assert.response(server, {
+        url: '/reset-password/' + token
+    }, {
+        body: /Invalid login token/,
+        status: 403
+    });
 };
 
 exports['test logging in with expired token'] = function() {
