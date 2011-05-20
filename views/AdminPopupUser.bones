@@ -28,7 +28,14 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
                 that.close();
             },
             error: function(model, resp) {
-                that.admin.error(model, resp.error);
+                try {
+                    var data = $.parseJSON(resp.responseText);
+                    data = data.message || data;
+                } catch(e) {
+                    var data = resp.responseText;
+                }
+
+                that.admin.error(model, data);
             }
         });
         return false;
