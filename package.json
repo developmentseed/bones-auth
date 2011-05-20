@@ -5,6 +5,7 @@
         "test": "expresso"
     },
     "dependencies": {
+        "bones-recaptcha": "1.3.x",
         "email": "0.2.3"
     }
 }
