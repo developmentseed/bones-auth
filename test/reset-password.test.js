@@ -76,7 +76,7 @@ exports['test logging in with tampered token'] = function() {
     var token = 'a' + auth.encryptExpiringRequest(user.id, model.secret(), user.password);
 
     assert.response(server, {
-        url: '/reset-password/' + token,
+        url: '/reset-password/' + token
     }, {
         body: /Invalid login token/,
         status: 403
@@ -97,7 +97,7 @@ exports['test logging in with token'] = function() {
 
     // First login with token.
     assert.response(server, {
-        url: '/reset-password/' + token,
+        url: '/reset-password/' + token
     }, {
         body: 'Successfully logged in!',
         status: 200
@@ -114,7 +114,7 @@ exports['test logging in with token'] = function() {
 
         // Second login with token must fail.
         assert.response(server, {
-            url: '/reset-password/' + token,
+            url: '/reset-password/' + token
         }, {
             body: /Invalid login token/,
             status: 403
@@ -126,7 +126,7 @@ exports['test logging in with expired token'] = function() {
     var token = 'ZEGlanrY47AMHnWGtJBTgLuYInfq5ouUCqF0jCWtzN8Xj5+nCBFfBrxIy9HmX32w3v7u3DqOSZfv';
 
     assert.response(server, {
-        url: '/reset-password/' + token,
+        url: '/reset-password/' + token
     }, {
         body: /Invalid login token/,
         status: 403
