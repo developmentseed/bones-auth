@@ -136,7 +136,7 @@ server.prototype.login = function(req, res, next) {
 
     // Back out early when data is missing.
     if (!req.body.id || !req.body.password) {
-        return next(new Error.HTTP(403));
+        return next(new Error.HTTP('Invalid login', 403));
     }
 
     var status = this.status.bind(this);
