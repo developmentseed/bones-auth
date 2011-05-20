@@ -9,12 +9,17 @@ exports['test GET user model'] = function(beforeExit) {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     });
+
     assert.response(server, {
         url: '/api/User',
         method: 'GET'
-    }, {
-        body: '[{"id":"root","email":"test@example.com"},{"id":"noemail"},{"id":"invalidemail","email":"so not a valid email address!"}]',
-        status: 200
+    }, { status: 200 }, function(res) {
+        assert.deepEqual(JSON.parse(res.body), [
+            { id: 'root', email: 'test@example.com' },
+            { id: 'noemail' },
+            { id: 'invalidemail', email: 'so not a valid email address!' },
+            { id: 'resetpassword', email: 'test@example.com' }
+        ]);
     });
 };
 

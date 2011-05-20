@@ -28,6 +28,8 @@ models['User'].augment({
             if (method === 'read' && _(filtered.password).isString()) {
                 model.password = filtered.password;
                 delete filtered.password;
+            } else if (method === 'create' || method === 'update') {
+                filtered.password = undefined;
             }
             success(filtered);
         };

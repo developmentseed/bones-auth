@@ -55,7 +55,6 @@ servers.Auth.prototype.tokenLogin = function(req, res, next) {
         // Obtain salt for user.
         new this.args.model({ id: message.data }).fetch({
             success: function(model, resp) {
-                // This only works for the fixture!
                 var salt = model.password;
                 if (this.verifyExpiringRequest(message, salt)) {
                     req.user = model;
@@ -102,7 +101,6 @@ servers.Auth.prototype.resetPassword = function(req, res, next) {
 // Generate an email object with a login token.
 servers.Auth.prototype.generateEmail = function(model, req) {
     var secret = model.constructor.secret();
-    // This only works for the fixture!
     var salt = model.password;
     var token = this.encryptExpiringRequest(model.id, secret, salt);
 

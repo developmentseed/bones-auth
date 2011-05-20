@@ -18,6 +18,12 @@ var store = {
         id: 'invalidemail',
         email: 'so not a valid email address!',
         password: '77d45868cf03167b44618aee53bad94c60b58744643bdd30e46f541b63df20c5'
+    },
+    '/api/User/resetpassword': {
+        id: 'resetpassword',
+        email: 'test@example.com',
+        // Unknown password
+        password: 'd6654ad03a87f411cefc969f4e6d59310772c0a44188e60c9d910ae1b07cf46f'
     }
 };
 
