@@ -5,7 +5,9 @@
         "test": "expresso"
     },
     "dependencies": {
-        "bones-recaptcha": "1.3.x",
         "email": "0.2.3"
+    },
+    "devDependencies": {
+        "backbone-stash": "0.0.x"
     }
 }

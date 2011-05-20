@@ -3,37 +3,23 @@ var email = require('email'),
     fs = require('fs'),
     Buffer = require('buffer').Buffer;
 
-// Email verification middleware
-// ----------------------------
 servers.Auth.augment({
     initialize: function(parent, app, args) {
         parent.call(this, app, args);
 
-        var url = '/api/reset-password/:id';
-
-        if (!args) args = {};
-        args.model = args.model || models['User'];
-        args.key = args.key || 'connect.sid';
-
-        this.args = args;
-
-        this.authEmail = this.authEmail.bind(this);
-        this.tokenLogin = this.tokenLogin.bind(this);
-        this.generateEmail = this.generateEmail.bind(this);
-
-        // TODO replace with a middleware.
-        this.post(url, servers.ReCaptcha.verifyReCaptcha, this.authEmail);
-        this.get(url, this.session, this.tokenLogin);
+        this.get('/reset-password/*', this.tokenLogin.bind(this), this.resetPassword.bind(this));
+        this.post('/api/reset-password/:id', this.authEmail.bind(this));
     }
 });
 
-// Turn a string into a hex token encrypted with the secret.
-servers.Auth.prototype.encryptExpiringRequest = function(data, secret) {
+// Turn a string into a base64 token encrypted with the secret and with a
+// message digest based on the salt.
+servers.Auth.prototype.encryptExpiringRequest = function(data, secret, salt) {
     data = new Buffer(JSON.stringify(data), 'utf8').toString('binary');
     var cipher = crypto.createCipher('aes-256-cfb', secret);
     var timestamp = (Date.now() / 1000).toFixed();
     while (timestamp.length < 10) timestamp = '0' + timestamp;
-    var hash = crypto.createHash('sha256').update(secret).update(timestamp).update(data).digest('binary');
+    var hash = crypto.createHash('sha256').update(salt).update(timestamp).update(data).digest('binary');
     var request = cipher.update(hash, 'binary', 'binary') +
                   cipher.update(timestamp, 'binary', 'binary') +
                   cipher.update(data, 'binary', 'binary') +
@@ -46,43 +32,79 @@ servers.Auth.prototype.decryptExpiringRequest = function(data, secret, maxAge) {
     if (typeof maxAge === 'undefined') maxAge = 86400;
     var decipher = crypto.createDecipher('aes-256-cfb', secret);
     var request = decipher.update(data, 'base64', 'binary') + decipher['final']('binary');
-    var hash = crypto.createHash('sha256').update(secret).update(request.substring(32)).digest('binary');
-    if (hash !== request.substring(0, hash.length)) return undefined;
-    var timestamp = parseInt(request.substring(hash.length, hash.length + 10), 10);
-    if ((Date.now() / 1000).toFixed() > (timestamp + maxAge)) return undefined;
-    return JSON.parse(new Buffer(request.substring(hash.length + 10), 'binary').toString('utf8'));
+    var timestamp = parseInt(request.substring(32, 42), 10) || -1;
+    var result = { request: request, generated: timestamp };
+    if ((Date.now() / 1000).toFixed() > (timestamp + maxAge)) return result;
+    try { result.data = JSON.parse(new Buffer(request.substring(42), 'binary').toString('utf8')); }
+    catch (err) {}
+    return result;
+};
+
+// Verify authenticity of a decrypted request.
+servers.Auth.prototype.verifyExpiringRequest = function(message, salt) {
+    var hash = crypto.createHash('sha256').update(salt).update(message.request.substring(32));
+    return hash.digest('binary') === message.request.substring(0, 32);
 };
 
 // Generate a new session for the user identified by the token.
 servers.Auth.prototype.tokenLogin = function(req, res, next) {
-    if (req.method.toLowerCase() !== 'get') return next();
     var secret = this.args.model.secret();
-    var tokenId = this.decryptExpiringRequest(req.params.id, secret);
+    var message = this.decryptExpiringRequest(req.params[0], secret);
 
-    if (tokenId) {
-        var status = this.status.bind(this);
-        new this.args.model({ id: tokenId }).fetch({
+    if (message.data) {
+        // Obtain salt for user.
+        new this.args.model({ id: message.data }).fetch({
             success: function(model, resp) {
+                // This only works for the fixture!
+                var salt = model.password;
+                if (this.verifyExpiringRequest(message, salt)) {
+                    req.user = model;
+                    next();
+                } else {
+                    next(new Error.HTTP('Invalid login token', 403));
+                }
+            }.bind(this),
+            error: function() {
+                next(new Error.HTTP('Invalid login token', 403));
+            }
+        });
+    } else {
+        next(new Error.HTTP('Invalid login token', 403));
+    }
+};
+
+servers.Auth.prototype.resetPassword = function(req, res, next) {
+    this.session(req, res, function() {
+        // Set the password to a random unguessable value to
+        // prevent multiple logins with the same token.
+        req.user.save({
+            password: crypto.createHash('sha256')
+                .update(req.user.password).update('' + Math.random())
+                .digest('hex')
+        }, {
+            success: function() {
                 req.session.regenerate(function() {
-                    req.session.user = model;
+                    req.session.user = req.user;
                     req.session.user.authenticated = true;
-                    status(req, res, next);
+
+                    // Applications should bind on /reset-password/* and redirect
+                    // to the path of their choice.
+                    next();
                 });
             },
             error: function() {
-                next(new Error.HTTP(403));
+                next(new Error.HTTP(500));
             }
         });
-
-    } else {
-        next(new Error.HTTP(403));
-    }
+    });
 };
 
 // Generate an email object with a login token.
 servers.Auth.prototype.generateEmail = function(model, req) {
-    var secret = this.args.model.secret();
-    var token = this.encryptExpiringRequest(model.id, secret);
+    var secret = model.constructor.secret();
+    // This only works for the fixture!
+    var salt = model.password;
+    var token = this.encryptExpiringRequest(model.id, secret, salt);
 
     var body = templates.ResetPasswordEmail({ token: token, host: req.headers.host });
 
@@ -90,7 +112,7 @@ servers.Auth.prototype.generateEmail = function(model, req) {
         from: Bones.plugin.config.adminEmail || 'test@example.com',
         to: '<' + model.get('email') + '>',
         bodyType: 'html',
-        subject: 'Your password has been reset.',
+        subject: 'Your password has been reset',
         body: body
     });
 
@@ -99,24 +121,20 @@ servers.Auth.prototype.generateEmail = function(model, req) {
 
 // Send an email to the user containing a login link with a token.
 servers.Auth.prototype.authEmail = function(req, res, next) {
-    var that = this;
-
-    new this.args.model({id: req.params.id}).fetch({
+    new this.args.model({ id: req.params.id }).fetch({
         success: function(model, resp) {
             if (!model.get('email') || !email.isValidAddress(model.get('email'))) {
-                next(new Error.HTTP('Invalid email address', 400));
-            }
-            else {
-                that.generateEmail(model, req).send(function(err) {
+                next(new Error.HTTP('Invalid email address', 409));
+            } else {
+                this.generateEmail(model, req).send(function(err) {
                     if (err) {
-                        res.send('Could not send email.<br /> Contact your administrator', 500);
-                    }
-                    else {
-                        res.send({message: 'Email has been sent'});
+                        next(new Error.HTTP('Could not send email. Contact your administrator.'), 500);
+                    } else {
+                        res.send({ message: 'Email has been sent' });
                     }
                 });
             }
-        },
+        }.bind(this),
         error: function() {
             next(new Error.HTTP(403));
         }

@@ -1,2 +1,1 @@
-Note: These files are reference files to show how an admin form could look like.
-The Admin*._ files are not used by bones-auth.
+Note: These files are reference files to show how an admin form could look like. All files are provided as examples and -- except for ResetPasswordEmail -- aren't actually used by this module. It is up to your application to implement or use these views should you choose to do so.

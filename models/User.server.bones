@@ -1,6 +1,7 @@
 var crypto = require('crypto'),
     email = require('email');
 
+// Note: this secret may not depend on the model instance!
 models['User'].secret = function() {
     return Bones.plugin.config.secret;
 };

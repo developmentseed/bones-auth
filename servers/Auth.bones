@@ -110,6 +110,7 @@ server.prototype.status = function(req, res, next) {
     if (req.session.user) {
         // Keep the session fresh.
         req.session.touch();
+
         res.send(req.session.user.toJSON());
     } else {
         // There's no user object, so we'll just destroy the session.
