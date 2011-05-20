@@ -22,7 +22,7 @@ servers.Auth.augment({
         this.generateEmail = this.generateEmail.bind(this);
 
         // TODO replace with a middleware.
-        this.post(url, this.authEmail);
+        this.post(url, servers.ReCaptcha.verifyReCaptcha, this.authEmail);
         this.get(url, this.session, this.tokenLogin);
     }
 });
