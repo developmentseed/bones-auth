@@ -136,6 +136,7 @@ server.prototype.login = function(req, res, next) {
 
     // Back out early when data is missing.
     if (!req.body.id || !req.body.password) {
+        req.session.destroy();
         return next(new Error.HTTP('Invalid login', 403));
     }
 
@@ -149,10 +150,12 @@ server.prototype.login = function(req, res, next) {
                     status(req, res, next);
                 });
             } else {
+                req.session.destroy();
                 next(new Error.HTTP('Invalid login', 403));
             }
         },
         error: function() {
+            req.session.destroy();
             next(new Error.HTTP('Invalid login', 403));
         }
     });

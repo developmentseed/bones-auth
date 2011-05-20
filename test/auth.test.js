@@ -30,6 +30,8 @@ exports['test GET authentication'] = function(beforeExit) {
     }, {
         body: '{"id":null}',
         status: 200
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 };
 
@@ -40,6 +42,8 @@ exports['test session loading'] = function(beforeExit) {
     }, {
         body: 'false',
         status: 200
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     // Test anonymous session
@@ -51,6 +55,8 @@ exports['test session loading'] = function(beforeExit) {
     }, {
         body: 'false',
         status: 200
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     // Test real session
@@ -66,6 +72,7 @@ exports['test session loading'] = function(beforeExit) {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
+        assert.ok(res.headers['set-cookie']);
         assert.response(server, {
             url: '/session',
             headers: {
@@ -105,6 +112,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Invalid login/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -119,6 +128,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Invalid login"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -132,6 +143,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Invalid login/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -146,6 +159,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Invalid login"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -159,6 +174,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Invalid login/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -173,6 +190,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Invalid login"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -186,6 +205,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Invalid login/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     assert.response(server, {
@@ -200,6 +221,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Invalid login"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     // Test login without token in body
@@ -214,6 +237,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Forbidden/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
 
@@ -230,6 +255,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Forbidden"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     // Test login without token in cookie
@@ -243,6 +270,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /Forbidden/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
 
@@ -258,6 +287,8 @@ exports['test POST authentication'] = function (beforeExit) {
     }, {
         body: /"message":"Forbidden"/,
         status: 403
+    }, function(res) {
+        assert.ok(!res.headers['set-cookie']);
     });
 
     // Test login-status-logout sequence.
