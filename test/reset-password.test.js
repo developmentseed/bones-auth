@@ -1,5 +1,9 @@
 var assert = require('assert');
 var server = require('./fixture/start').servers.Core;
+var auth = require('bones').plugin.servers.Auth.prototype;
+var model = require('bones').plugin.models.User;
+var user = new model({ id: 'resetpassword' }).fetch();
+
 
 exports['test password reset request'] = function() {
     // Test that non-existent users get access denied
@@ -67,12 +71,20 @@ exports['test password reset request'] = function() {
     });
 };
 
-exports['test logging in with token'] = function() {
-    var auth = require('bones').plugin.servers.Auth.prototype;
-    var model = require('bones').plugin.models.User;
-
+exports['test logging in with tampered token'] = function() {
     // Generate a fake token
-    var user = new model({ id: 'resetpassword' }).fetch();
+    var token = 'a' + auth.encryptExpiringRequest(user.id, model.secret(), user.password);
+
+    assert.response(server, {
+        url: '/reset-password/' + token,
+    }, {
+        body: /Invalid login token/,
+        status: 403
+    });
+};
+
+exports['test logging in with token'] = function() {
+    // Generate a fake token
     var token = auth.encryptExpiringRequest(user.id, model.secret(), user.password);
 
     assert.response(server, {
@@ -107,5 +119,16 @@ exports['test logging in with token'] = function() {
             body: /Invalid login token/,
             status: 403
         });
+    });
+};
+
+exports['test logging in with expired token'] = function() {
+    var token = 'ZEGlanrY47AMHnWGtJBTgLuYInfq5ouUCqF0jCWtzN8Xj5+nCBFfBrxIy9HmX32w3v7u3DqOSZfv';
+
+    assert.response(server, {
+        url: '/reset-password/' + token,
+    }, {
+        body: /Invalid login token/,
+        status: 403
     });
 };
