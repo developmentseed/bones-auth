@@ -1,12 +1,5 @@
-process.env.NODE_ENV = 'test';
-
 var assert = require('assert');
-var spawn = require('child_process').spawn;
-var fs = require('fs');
-
-require('./fixture');
-var fixture = require('bones').plugin;
-var server = new fixture.servers['Core'](fixture);
+var server = require('./fixture/start').servers.Core;
 
 exports['test GET user model'] = function(beforeExit) {
     assert.response(server, {
@@ -20,7 +13,7 @@ exports['test GET user model'] = function(beforeExit) {
         url: '/api/User',
         method: 'GET'
     }, {
-        body: '[{"id":"root","email":"test@example.com"},{"id":"noemail"}]',
+        body: '[{"id":"root","email":"test@example.com"},{"id":"noemail"},{"id":"invalidemail","email":"so not a valid email address!"}]',
         status: 200
     });
 };
@@ -105,7 +98,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
     }, {
-        body: 'Invalid login',
+        body: /Invalid login/,
         status: 403
     });
 
@@ -119,7 +112,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4" })
     }, {
-        body: '{"message":"Invalid login"}',
+        body: /"message":"Invalid login"/,
         status: 403
     });
 
@@ -132,7 +125,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root' })
     }, {
-        body: 'Invalid login',
+        body: /Invalid login/,
         status: 403
     });
 
@@ -146,7 +139,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root' })
     }, {
-        body: '{"message":"Invalid login"}',
+        body: /"message":"Invalid login"/,
         status: 403
     });
 
@@ -159,7 +152,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", password: 'test' })
     }, {
-        body: 'Invalid login',
+        body: /Invalid login/,
         status: 403
     });
 
@@ -173,7 +166,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", password: 'test' })
     }, {
-        body: '{"message":"Invalid login"}',
+        body: /"message":"Invalid login"/,
         status: 403
     });
 
@@ -186,7 +179,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'bar' })
     }, {
-        body: 'Invalid login',
+        body: /Invalid login/,
         status: 403
     });
 
@@ -200,7 +193,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'bar' })
     }, {
-        body: '{"message":"Invalid login"}',
+        body: /"message":"Invalid login"/,
         status: 403
     });
 
@@ -214,7 +207,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ id: 'root', password: 'test' })
     }, {
-        body: 'Forbidden',
+        body: /Forbidden/,
         status: 403
     });
 
@@ -230,7 +223,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ id: 'root', password: 'test' })
     }, {
-        body: '{"message":"Forbidden"}',
+        body: /"message":"Forbidden"/,
         status: 403
     });
 
@@ -243,7 +236,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
     }, {
-        body: 'Forbidden',
+        body: /Forbidden/,
         status: 403
     });
 
@@ -258,7 +251,7 @@ exports['test POST authentication'] = function (beforeExit) {
         },
         body: JSON.stringify({ "bones.token": "1f4a1137268b8e384e50d0fb72c627c4", id: 'root', password: 'test' })
     }, {
-        body: '{"message":"Forbidden"}',
+        body: /"message":"Forbidden"/,
         status: 403
     });
 
