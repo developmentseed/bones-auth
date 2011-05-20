@@ -148,11 +148,11 @@ server.prototype.login = function(req, res, next) {
                     status(req, res, next);
                 });
             } else {
-                next(new Error.HTTP(403));
+                next(new Error.HTTP('Invalid login', 403));
             }
         },
         error: function() {
-            next(new Error.HTTP(403));
+            next(new Error.HTTP('Invalid login', 403));
         }
     });
 };
