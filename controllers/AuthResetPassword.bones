@@ -29,5 +29,5 @@ controller = Backbone.Controller.extend({
             location.hash = '!/';
         }
         this.res && this.res.redirect('/#!' + this.req.url);
-    },
+    }
 });
