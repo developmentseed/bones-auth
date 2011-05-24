@@ -27,16 +27,7 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
                 new views.AdminGrowl({message: message});
                 that.close();
             },
-            error: function(model, resp) {
-                try {
-                    var data = $.parseJSON(resp.responseText);
-                    data = data.message || data;
-                } catch(e) {
-                    var data = resp.responseText;
-                }
-
-                that.admin.error(model, data);
-            }
+            error: that.admin.error
         });
         return false;
     }
