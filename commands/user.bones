@@ -4,7 +4,7 @@ var crypto = require('crypto'),
 command = Bones.Command.extend({});
 
 command.description = 'user management';
-command.usage = 'list | add <id> <password> | del <id>';
+command.usage = 'list | add <id> <email> <password> | del <id>';
 
 command.prototype.initialize = function(plugin, callback) {
     var action = plugin.argv._[1];
@@ -41,12 +41,12 @@ command.prototype.list = {
 };
 
 command.prototype.add = {
-    name: 'user add <username> <password>',
+    name: 'user add <username> <email> <password>',
     description: 'create a new user account',
     command: function(argv, callback) {
-        if (argv._[2] && argv._[3]) {
-            argv._[3] = models.User.hash(argv._[3]);
-            var user = new models.User({id: argv._[2], password: argv._[3]});
+        if (argv._[2] && argv._[3] && argv._[4]) {
+            argv._[4] = models.User.hash(argv._[4]);
+            var user = new models.User({id: argv._[2], email: argv._[3], password: argv._[4]});
             user.save({}, {
                 success: function(model, resp) {
                     console.log('User %s created', argv._[2]);
