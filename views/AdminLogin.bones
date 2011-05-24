@@ -19,7 +19,10 @@ view = Backbone.View.extend({
         // TODO: there's no event for unattachment
         this.model.unbind('auth:error');
         this.model.bind('auth:error', function(model, error) {
-            var resp = {message: error.error || 'An unknown error has occurred.'};
+            var resp = {
+                message: error.error || 'An unknown error has occurred.',
+                classes: 'error'
+            };
             new views.AdminGrowl(resp);
         });
 
