@@ -13,7 +13,7 @@ if (views.AdminDropdown) view = views.AdminDropdown.extend({
         { href: '#user', title: 'My account' },
         { href: '#userCreate', title: 'Create user' },
         { href: '#userView', title: 'View users' },
-        { href: '#logout', title: 'Logout' },
+        { href: '#logout', title: 'Logout' }
     ],
     initialize: function(options) {
         this.title = this.model.id;
