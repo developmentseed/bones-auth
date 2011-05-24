@@ -8,7 +8,10 @@ if (views.AdminPopup) view = views.AdminPopup.extend({
     initialize: function (options) {
         _.bindAll(this, 'submit');
         this.create = !Boolean(this.model.id);
-        this.content = templates['AdminFormUser'](this.model.attributes);
+        this.content = templates['AdminFormUser']({
+            'id': this.model.get('id'),
+            'email': this.model.get('email')
+        });
         views.AdminPopup.prototype.initialize.call(this, options);
     },
     submit: function() {
