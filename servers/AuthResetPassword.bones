@@ -31,7 +31,8 @@ servers.Auth.prototype.encryptExpiringRequest = function(data, secret, salt) {
 servers.Auth.prototype.decryptExpiringRequest = function(data, secret, maxAge) {
     if (typeof maxAge === 'undefined') maxAge = 86400;
     var decipher = crypto.createDecipher('aes-256-cfb', secret);
-    var request = decipher.update(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64', 'binary') + decipher['final']('binary');
+    var request = decipher.update(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64', 'binary')
+        + decipher['final']('binary');
     var timestamp = parseInt(request.substring(32, 42), 10) || -1;
     var result = { request: request, generated: timestamp };
     if ((Date.now() / 1000).toFixed() > (timestamp + maxAge)) return result;
