@@ -122,18 +122,18 @@ var User = {
         // Login.
         if (!_.isUndefined(attr.id) && !_.isUndefined(attr.password)) {
             if (!attr.id)
-                return { error: 'Username is required.', field: 'id' };
+                return new Error('Username is required.');
             if (!attr.password)
-                return { error: 'Password is required.', field: 'password' };
+                return new Error('Password is required.');
         }
         // Change password.
         if (!_.isUndefined(attr.password) && !_.isUndefined(attr.passwordConfirm)) {
             if (!attr.password)
-                return { error: 'Password is required.', field: 'password' };
+                return new Error('Password is required.');
             if (!attr.passwordConfirm)
-                return { error: 'Password confirmation is required.', field: 'passwordConfirm' };
+                return new Error('Password confirmation is required.');
             if (attr.password !== attr.passwordConfirm)
-                return { error: 'Passwords do not match.', field: 'password' };
+                return new Error('Passwords do not match.');
         }
         // Perform JSON schema validation if method exists.
         if (this.validateSchema) {
