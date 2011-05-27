@@ -26,7 +26,7 @@ var User = {
         }
     },
     url: function() {
-        return '/api/User/' + this.id;
+        return '/api/User/' + encodeURIComponent(this.id);
     },
     authUrl: '/api/Auth',
 
