@@ -20,12 +20,14 @@ view = Backbone.View.extend({
             success: function(resp) {
                 var resp = resp || {message: 'Reset password'};
                 new views.AdminGrowl(resp);
-                //that.close();
             },
             error: function(resp) {
-                //that.admin.error(that.model, resp);
+                new views.AdminGrowl({
+                    'message': 'Unknown user',
+                    'classes': 'error'
+                });
             }
-        } 
+        };
         params.id && this.model.resetPassword(params);
         return false;
     }
