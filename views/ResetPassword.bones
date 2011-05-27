@@ -16,7 +16,7 @@ view = Backbone.View.extend({
     submit: function() {
         var that = this;
         var params = {
-            id: this.model.id || this.$('input[name=id]').val(),
+            id: encodeURIComponent(this.model.id || this.$('input[name=id]').val()),
             success: function(resp) {
                 var resp = resp || {message: 'Reset password'};
                 new views.AdminGrowl(resp);
