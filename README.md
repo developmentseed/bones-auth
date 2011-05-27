@@ -14,6 +14,11 @@ is also available.
 - documentcloud backbone 0.3.3
 - visionmedia express 1.0.7
 
+### Running tests
+
+- Use [kkaefer's expresso branch](https://github.com/kkaefer/expresso/tree/stop_listening_servers)
+- Run `npm test`
+
 ### Components
 
 - `bones-auth.js`: client side javascript. Contains the mvc classes for any
