@@ -138,12 +138,11 @@ var User = {
                 return new Error('Passwords do not match.');
         }
         // Perform JSON schema validation if method exists.
-        if (this.validateSchema) {
-            return this.validateSchema(attr);
+        if (this.validateAttributes) {
+            return this.validateAttributes(attr);
         }
     }
 };
-
 if (models.Document) {
     model = models.Document.extend(User);
 } else {
