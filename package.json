@@ -1,13 +1,16 @@
 {
     "name": "bones-auth",
+    "description": "User model with password based authentication for Bones.",
     "version": "1.3.0",
+    "author": {
+      "name": "Development Seed",
+      "url": "http://developmentseed.org/",
+      "email": "info@developmentseed.org"
+    },
     "scripts": {
         "test": "expresso"
     },
     "dependencies": {
         "email": "0.2.3"
-    },
-    "devDependencies": {
-        "backbone-stash": "0.0.x"
     }
 }
