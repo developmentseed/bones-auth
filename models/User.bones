@@ -126,10 +126,13 @@ var User = {
             if (!attr.password)
                 return new Error('Password is required.');
         }
-        // Change email/password.
-        if (!_.isUndefined(attr.password) && !_.isUndefined(attr.passwordConfirm)) {
+        // Change email.
+        if (!_.isUndefined(attr.email)) {
             if (!attr.email)
                 return new Error('Email is required.');
+        }
+        // Change password.
+        if (!_.isUndefined(attr.password) && !_.isUndefined(attr.passwordConfirm)) {
             if (!attr.password)
                 return new Error('Password is required.');
             if (!attr.passwordConfirm)
