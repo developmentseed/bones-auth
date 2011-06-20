@@ -31,7 +31,7 @@ server.prototype.initialize = function(plugin, args) {
     this.use(this.hashPassword.bind(this));
 
     // Add the session middleware.
-    this.session = middleware.session({ secret: args.model.secret() });
+    this.session = middleware.session({ store: args.store, secret: args.model.secret() });
     this.use(this.sessionPassive.bind(this));
     this.use(this.args.url, this.sessionActive.bind(this));
 
