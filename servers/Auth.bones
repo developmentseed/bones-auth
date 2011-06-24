@@ -23,6 +23,7 @@ server.prototype.initialize = function(plugin, args) {
     args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 });
     args.url = args.url || '/api/Auth';
     args.key = args.key || 'connect.sid';
+    args.cookie = args.cookie || {path: '/', httpOnly: true, maxAge: 14400000 };
 
     this.args = args;
     this.config = plugin.config;
@@ -31,7 +32,13 @@ server.prototype.initialize = function(plugin, args) {
     this.use(this.hashPassword.bind(this));
 
     // Add the session middleware.
-    this.session = middleware.session({ store: args.store, secret: args.model.secret() });
+    this.session = middleware.session({
+        key: args.key,
+        store: args.store,
+        secret: args.model.secret(),
+        cookie: args.cookie,
+        fingerprint: args.fingerprint
+    });
     this.use(this.sessionPassive.bind(this));
     this.use(this.args.url, this.sessionActive.bind(this));
 
