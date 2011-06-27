@@ -4,7 +4,7 @@ var crypto = require('crypto'),
 command = Bones.Command.extend({});
 
 command.description = 'user management';
-command.usage = 'list | add <id> <email> <password> | del <id>';
+command.usage = ['list', 'add <id> <email> <password>', 'del <id>'];
 
 command.prototype.initialize = function(plugin, callback) {
     var action = plugin.argv._[1];
