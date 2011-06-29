@@ -20,6 +20,7 @@ view = Backbone.View.extend({
             success: function(resp) {
                 var resp = resp || {message: 'Reset password'};
                 new views.AdminGrowl(resp);
+                that.route('/');
             },
             error: function(resp) {
                 new views.AdminGrowl({
