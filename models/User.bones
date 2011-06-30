@@ -117,8 +117,21 @@ var User = {
         }
 
         return this.request('GET', params);
-    },
-    validate: function(attr) {
+    }
+};
+if (models.Document) {
+    model = models.Document.extend(User);
+} else {
+    model = Backbone.Model.extend(User);
+}
+
+/**
+ * Augment the validate method of the parent model, allowing
+ * us to re-use the Document validate method (if available)
+ * without having to hardcode the schema validation call.
+ */
+model.augment({
+    validate: function(parent, attr) {
         // Login.
         if (!_.isUndefined(attr.id) && !_.isUndefined(attr.password)) {
             if (!attr.id)
@@ -140,14 +153,6 @@ var User = {
             if (attr.password !== attr.passwordConfirm)
                 return new Error('Passwords do not match.');
         }
-        // Perform JSON schema validation if method exists.
-        if (this.validateAttributes) {
-            return this.validateAttributes(attr);
-        }
+        parent && parent.call(this, attr);
     }
-};
-if (models.Document) {
-    model = models.Document.extend(User);
-} else {
-    model = Backbone.Model.extend(User);
-}
+});
