@@ -54,7 +54,7 @@ servers.Auth.prototype.tokenLogin = function(req, res, next) {
 
     if (message.data) {
         // Obtain salt for user.
-        new this.args.model({ id: message.data }).fetch({
+        new this.args.model({ id: message.data }, req.query).fetch({
             success: function(model, resp) {
                 var salt = model.password;
                 if (this.verifyExpiringRequest(message, salt)) {
@@ -122,7 +122,7 @@ servers.Auth.prototype.generateEmail = function(model, req) {
 
 // Send an email to the user containing a login link with a token.
 servers.Auth.prototype.authEmail = function(req, res, next) {
-    new this.args.model({ id: req.params.id }).fetch({
+    new this.args.model({ id: req.params.id }, req.query).fetch({
         success: function(model, resp) {
             if (!model.get('email') || !email.isValidAddress(model.get('email'))) {
                 next(new Error.HTTP('Invalid email address', 409));
