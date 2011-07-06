@@ -109,10 +109,10 @@ servers.Auth.prototype.generateEmail = function(model, req) {
     var altText= templates.ResetPasswordEmailAlt({ token: token, host: req.headers.host });
 
     var mail = new email.Email({
-        from: Bones.plugin.config.adminEmail || 'test@example.com',
+        from: Bones.plugin.config.adminEmail,
         to: '<' + model.get('email') + '>',
         bodyType: 'html',
-        subject: 'Your password has been reset',
+        subject: Bones.plugin.config.passwordResetSubject,
         body: body,
         altText: altText
     });
