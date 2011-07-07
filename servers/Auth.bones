@@ -53,7 +53,8 @@ server.prototype.initialize = function(plugin, args) {
 };
 
 // Passively instantiate the session (either via cookie in req or
-// because adminParty is active).
+// because adminParty is active). Overriding this method to further scope
+// active sessions to application-specific paths/requests is recommended.
 server.prototype.sessionPassive = function(req, res, next) {
     if (req.cookies[this.args.key] || this.config.adminParty) {
         this.session(req, res, next);
