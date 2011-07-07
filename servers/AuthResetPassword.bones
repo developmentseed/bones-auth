@@ -7,6 +7,13 @@ servers.Auth.augment({
     initialize: function(parent, app, args) {
         parent.call(this, app, args);
 
+        // Conditionally add the recaptcha test. This has to be injected at this point and there
+        // is no clean way to augment or extend the middleware or auth servers to accomplish this
+        // otherwise.
+        if (servers.ReCaptcha) {
+            this.post('/api/reset-password/:id', servers.ReCaptcha.verifyReCaptcha);
+        }
+
         this.get('/reset-password/*', this.tokenLogin.bind(this), this.resetPassword.bind(this));
         this.post('/api/reset-password/:id', this.authEmail.bind(this));
     }
