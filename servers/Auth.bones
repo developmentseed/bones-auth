@@ -79,8 +79,13 @@ server.prototype.user = function(req, res, next) {
     if (req.session && req.session.user) {
         req.session.user = new this.args.model(req.session.user, req.query);
         req.session.user.authenticated = true;
+        req.session.user.fetch({
+            success: function() { next(); },
+            error: function() { next(); }
+        });
+    } else {
+        next();
     }
-    next();
 };
 
 // NOTE: Add the auth router before the core router.
