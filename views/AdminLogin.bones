@@ -11,7 +11,7 @@ view = Backbone.View.extend({
     },
 
     initialize: function(options) {
-        _.bindAll(this, 'render', 'attach', 'auth');
+        _.bindAll(this, 'render', 'auth');
         _.defaults(this, options || {}, {
             context: $('#bonesAdminToolbar > .auth')
         });
@@ -26,15 +26,11 @@ view = Backbone.View.extend({
             new views.AdminGrowl(resp);
         });
 
-        this.render().trigger('attach');
+        this.render();
     },
 
     render: function() {
         $(this.el).html(templates['AdminFormLogin'](this.model));
-        return this;
-    },
-
-    attach: function () {
         this.context.prepend(this.el);
         return this;
     },

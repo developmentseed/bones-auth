@@ -7,7 +7,7 @@ view = Backbone.View.extend({
     },
     initialize: function (options) {
         _.bindAll(this, 'render', 'submit');
-        this.render().trigger('attach');
+        this.render();
     },
     render: function() {
         $(this.el).empty().append(templates['ResetPassword'](this.model));
