@@ -27,7 +27,12 @@ var store = {
     }
 };
 
-require('bones').Backbone.sync = function(method, model, success, error) {
+require('bones').Backbone.sync = function(method, model, options) {
+    var options = options || {};
+    var success = options.success,
+        error = options.error;
+
+
     var id = (typeof model.url === 'function') ? model.url() : model.url;
     if (!id) return error('URL required');
 

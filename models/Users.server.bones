@@ -4,9 +4,14 @@
 // When overridding this method with a custom sync, make sure to include
 // the password filtering logic. @TODO: better way of ensuring this override
 // occurs on extending models.
-models['Users'].prototype.sync = function(method, model, success, error) {
+models['Users'].prototype.sync = function(method, model, options) {
+    var options = options || {};
+    var success = options.success,
+        error = options.error;
+
+
     // Filter out `resp.password`.
-    var successFilter = function(resp) {
+    options.success = function(resp) {
         var filtered = _(resp).clone();
         filtered = filtered.map(function(u) {
             u = _(u).clone();
@@ -15,5 +20,5 @@ models['Users'].prototype.sync = function(method, model, success, error) {
         });
         success(filtered);
     };
-    Backbone.sync(method, model, successFilter, error);
+    Backbone.sync(method, model, options);
 };

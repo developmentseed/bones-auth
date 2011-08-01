@@ -19,11 +19,15 @@ models['User'].hash = function(string) {
 // the password filtering logic. @TODO: better way of ensuring this override
 // occurs on extending models.
 models['User'].augment({
-    sync: function(parent, method, model, success, error) {
+    sync: function(parent, method, model, options) {
+        var options = options || {};
+        var success = options.success,
+            error = options.error;
+
         // Don't write the passwordConfirm attribute.
         model.unset('passwordConfirm', { silent: true });
         // Filter out `resp.password`.
-        var successFilter = function(resp) {
+        options.success = function(resp) {
             var filtered = _(resp).clone();
             if (method === 'read' && _(filtered.password).isString()) {
                 model.password = filtered.password;
@@ -33,6 +37,6 @@ models['User'].augment({
             }
             success(filtered);
         };
-        Backbone.sync(method, model, successFilter, error);
+        Backbone.sync(method, model, options);
     }
 });
