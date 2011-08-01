@@ -1,4 +1,4 @@
-controller = Backbone.Controller.extend({
+controller = Backbone.Router.extend({
     routes: {
         '/reset-password' : 'resetPassword',
         '/reset-password/:token': 'authToken'
