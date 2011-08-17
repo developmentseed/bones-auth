@@ -1,7 +1,7 @@
 {
     "name": "bones-auth",
     "description": "User model with password based authentication for Bones.",
-    "version": "1.3.3",
+    "version": "1.3.4",
 
     "author": {
       "name": "Development Seed",
