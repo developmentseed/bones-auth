@@ -13,3 +13,9 @@ Bones.Command.options['passwordResetSubject'] = {
     'description': 'Subject used for password reset emails.',
     'default': 'Your password reset request'
 };
+
+Bones.Command.options['passwordResetTimeout'] = {
+    'title': 'passwordResetTimeout=[seconds]',
+    'description': 'The time that token login links remain valid.',
+    'default': 86400
+};
