@@ -57,7 +57,8 @@ servers.Auth.prototype.verifyExpiringRequest = function(message, salt) {
 // Generate a new session for the user identified by the token.
 servers.Auth.prototype.tokenLogin = function(req, res, next) {
     var secret = this.args.model.secret();
-    var message = this.decryptExpiringRequest(req.params[0], secret);
+    var message = this.decryptExpiringRequest(req.params[0], secret,
+        Bones.plugin.config.passwordResetTimeout);
 
     if (message.data) {
         // Obtain salt for user.
