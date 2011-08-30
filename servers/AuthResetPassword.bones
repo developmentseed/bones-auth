@@ -108,19 +108,24 @@ servers.Auth.prototype.resetPassword = function(req, res, next) {
 };
 
 // Generate an email object with a login token.
-servers.Auth.prototype.generateEmail = function(model, req) {
+servers.Auth.prototype.generateEmail = function(model, req, options) {
+    var options = options || {};
     var secret = model.constructor.secret();
     var salt = model.password;
     var token = this.encryptExpiringRequest(model.id, secret, salt);
 
-    var body = templates.ResetPasswordEmail({ token: token, host: req.headers.host });
-    var altText= templates.ResetPasswordEmailAlt({ token: token, host: req.headers.host });
+    var subject = options.subject || Bones.plugin.config.passwordResetSubject;
+    var body = options.resetPasswordEmailTemplate ? options.resetPasswordEmailTemplate({ token: token, host: req.headers.host })
+        : templates.ResetPasswordEmail({ token: token, host: req.headers.host });
+    var altText = options.resetPasswordEmailAltTemplate ? options.resetPasswordEmailAltTemplate({ token: token, host: req.headers.host })
+        : templates.ResetPasswordEmailAlt({ token: token, host: req.headers.host });
+
 
     var mail = new email.Email({
         from: Bones.plugin.config.adminEmail,
         to: '<' + model.get('email') + '>',
         bodyType: 'html',
-        subject: Bones.plugin.config.passwordResetSubject,
+        subject: subject,
         body: body,
         altText: altText
     });
