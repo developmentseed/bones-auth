@@ -23,7 +23,10 @@ server.prototype.initialize = function(plugin, args) {
     args.store = args.store || new middleware.session.MemoryStore({ reapInterval: -1 });
     args.url = args.url || '/api/Auth';
     args.key = args.key || 'connect.sid';
+    args.stubKey = args.stubKey || 'bones.auth';
     args.cookie = args.cookie || {path: '/', httpOnly: true, maxAge: 14400000 };
+    args.stubCookie = _(args.stubCookie || {}).defaults(args.cookie);
+    delete args.stubCookie.secure;
 
     this.args = args;
     this.config = plugin.config;
@@ -57,8 +60,13 @@ server.prototype.initialize = function(plugin, args) {
 // active sessions to application-specific paths/requests is recommended.
 server.prototype.sessionPassive = function(req, res, next) {
     if (req.cookies[this.args.key] || this.config.adminParty) {
+        res.cookie(this.args.stubKey, 'yes', this.args.stubCookie);
         this.session(req, res, next);
     } else {
+        // Delete the stub cookie if one exists.
+        if (req.cookies[this.args.stubKey]) {
+            res.cookie(this.args.stubKey, '', _.defaults({ maxAge: - 864e9 }, this.args.stubCookie));
+        }
         next();
     }
 };
@@ -123,11 +131,13 @@ server.prototype.status = function(req, res, next) {
     if (req.session.user) {
         // Keep the session fresh.
         req.session.touch();
+        res.cookie(this.args.stubKey, 'yes', this.args.stubCookie);
 
         res.send(req.session.user.toJSON());
     } else {
         // There's no user object, so we'll just destroy the session.
         res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));
+        res.cookie(this.args.stubKey, '', _.defaults({ maxAge: - 864e9 }, this.args.stubCookie));
         req.session.destroy(function(err) {
             if (err) next(err);
             res.send({ id: null });
@@ -155,6 +165,7 @@ server.prototype.login = function(req, res, next) {
         return next(new Error.HTTP('Invalid login', 403));
     }
 
+    var auth = this;
     var status = this.status.bind(this);
     new this.args.model({ id: req.body.id }, req.query).fetch({
         success: function(model, resp) {
@@ -164,6 +175,10 @@ server.prototype.login = function(req, res, next) {
                     req.session.user.authenticated = true;
                     status(req, res, next);
                 });
+                // Set a stub cookie that can also be read via HTTP
+                // (The session cookie might not). This can aid in nginx
+                // configuration.
+                res.cookie(auth.args.stubKey, 'yes', auth.args.stubCookie);
             } else {
                 req.session.destroy();
                 next(new Error.HTTP('Invalid login', 403));
