@@ -1,7 +1,23 @@
 var assert = require('assert');
 var server = require('./fixture/start').servers.Core;
 
-exports['test GET user model'] = function(beforeExit) {
+function parseCookies(arr) {
+    var cookies = {};
+    arr.forEach(function(str) {
+        var parts = str.split(/\s*;\s*/g).map(function(str) { return str.split('='); });
+        var first = parts.shift();
+        var options = {};
+        parts.forEach(function(part) { options[part.shift()] = part.join('=') || true; });
+        cookies[first.shift()] = {
+            value: first.join('='),
+            toString: function() { return str; },
+            options: options
+        };
+    });
+    return cookies;
+}
+
+exports['test GET user model'] = function(beforeExit, assert) {
     assert.response(server, {
         url: '/api/User/root',
         method: 'GET'
@@ -14,7 +30,7 @@ exports['test GET user model'] = function(beforeExit) {
         url: '/api/User',
         method: 'GET'
     }, { status: 200 }, function(res) {
-        var body = _(JSON.parse(res.body)).sortBy(function(r) { return r.id });
+        var body = _(JSON.parse(res.body)).sortBy(function(r) { return r.id; });
         var equals = _([
             { id: 'root', email: 'test@example.com' },
             { id: 'noemail' },
@@ -25,7 +41,7 @@ exports['test GET user model'] = function(beforeExit) {
     });
 };
 
-exports['test GET authentication'] = function(beforeExit) {
+exports['test GET authentication'] = function(beforeExit, assert) {
     assert.response(server, {
         url: '/api/Auth',
         method: 'GET'
@@ -37,7 +53,7 @@ exports['test GET authentication'] = function(beforeExit) {
     });
 };
 
-exports['test session loading'] = function(beforeExit) {
+exports['test session loading'] = function(beforeExit, assert) {
     // Test that session isn't loaded
     assert.response(server, {
         url: '/session'
@@ -75,10 +91,13 @@ exports['test session loading'] = function(beforeExit) {
         status: 200
     }, function(res) {
         assert.ok(res.headers['set-cookie']);
+        var cookies = parseCookies(res.headers['set-cookie']);
+        assert.equal(cookies['bones.auth'].value, 'yes');
+
         assert.response(server, {
             url: '/session',
             headers: {
-                'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                'cookie': 'connect.sid=' + cookies['connect.sid'].value
             }
         }, {
             status: 200
@@ -91,7 +110,7 @@ exports['test session loading'] = function(beforeExit) {
         assert.response(server, {
             url: '/model',
             headers: {
-                'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                'cookie': 'connect.sid=' + cookies['connect.sid'].value
             }
         }, {
             status: 200
@@ -102,7 +121,7 @@ exports['test session loading'] = function(beforeExit) {
     });
 };
 
-exports['test POST authentication'] = function (beforeExit) {
+exports['test POST authentication'] = function (beforeExit, assert) {
     assert.response(server, {
         url: '/api/Auth',
         method: 'POST',
@@ -306,11 +325,13 @@ exports['test POST authentication'] = function (beforeExit) {
         body: '{"id":"root","email":"test@example.com"}',
         status: 200
     }, function(res) {
+        var cookies = parseCookies(res.headers['set-cookie']);
+        assert.equal(cookies['bones.auth'].value, 'yes');
         assert.response(server, {
             url: '/api/Auth',
             method: 'GET',
             headers: {
-                'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                'cookie': 'connect.sid=' + cookies['connect.sid'].value
             }
         }, {
             body: '{"id":"root","email":"test@example.com"}',
@@ -328,7 +349,10 @@ exports['test POST authentication'] = function (beforeExit) {
                 body: '{"id":null}',
                 status: 200
             }, function(res) {
-                assert.ok(/^connect.sid=;/.test(res.headers['set-cookie'][0]));
+                var cookies = parseCookies(res.headers['set-cookie']);
+                // Test that cookies are unset.
+                assert.equal(cookies['bones.auth'].value, '');
+                assert.equal(cookies['connect.sid'].value, '');
                 assert.response(server, {
                     url: '/api/Auth',
                     method: 'GET'

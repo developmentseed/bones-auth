@@ -177,8 +177,7 @@ server.prototype.login = function(req, res, next) {
                 });
                 // Set a stub cookie that can also be read via HTTP
                 // (The session cookie might not). This can aid in nginx
-                // configuration.
-                res.cookie(auth.args.stubKey, 'yes', auth.args.stubCookie);
+                // configuration. This is done elsewhere.
             } else {
                 req.session.destroy();
                 next(new Error.HTTP('Invalid login', 403));

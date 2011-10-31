@@ -4,8 +4,23 @@ var auth = require('bones').plugin.servers.Auth.prototype;
 var model = require('bones').plugin.models.User;
 var user = new model({ id: 'resetpassword' }).fetch();
 
+function parseCookies(arr) {
+    var cookies = {};
+    arr.forEach(function(str) {
+        var parts = str.split(/\s*;\s*/g).map(function(str) { return str.split('='); });
+        var first = parts.shift();
+        var options = {};
+        parts.forEach(function(part) { options[part.shift()] = part.join('=') || true; });
+        cookies[first.shift()] = {
+            value: first.join('='),
+            toString: function() { return str; },
+            options: options
+        };
+    });
+    return cookies;
+}
 
-exports['test password reset request'] = function() {
+exports['test password reset request'] = function(beforeExit, assert) {
     // Test that non-existent users get access denied
     assert.response(server, {
         url: '/api/reset-password/invalid',
@@ -71,7 +86,7 @@ exports['test password reset request'] = function() {
     });
 };
 
-exports['test logging in with tampered token'] = function() {
+exports['test logging in with tampered token'] = function(beforeExit, assert) {
     // Generate a fake token
     var token = 'a' + auth.encryptExpiringRequest(user.id, model.secret(), user.password);
 
@@ -83,7 +98,7 @@ exports['test logging in with tampered token'] = function() {
     });
 };
 
-exports['test logging in with token'] = function() {
+exports['test logging in with token'] = function(beforeExit, assert) {
     // Generate a fake token
     var token = auth.encryptExpiringRequest(user.id, model.secret(), user.password);
 
@@ -102,10 +117,11 @@ exports['test logging in with token'] = function() {
         body: 'Successfully logged in!',
         status: 200
     }, function(res) {
+        var cookies = parseCookies(res.headers['set-cookie']);
         assert.response(server, {
             url: '/api/Auth',
             headers: {
-                'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                'cookie': 'connect.sid=' + cookies['connect.sid'].value
             }
         }, {
             body: '{"id":"resetpassword","email":"test@example.com"}',
@@ -120,17 +136,9 @@ exports['test logging in with token'] = function() {
             status: 403
         });
     });
-
-    // Second login with token must fail.
-    assert.response(server, {
-        url: '/reset-password/' + token
-    }, {
-        body: /Invalid login token/,
-        status: 403
-    });
 };
 
-exports['test logging in with expired token'] = function() {
+exports['test logging in with expired token'] = function(beforeExit, assert) {
     var token = 'ZEGlanrY47AMHnWGtJBTgLuYInfq5ouUCqF0jCWtzN8Xj5+nCBFfBrxIy9HmX32w3v7u3DqOSZfv';
 
     assert.response(server, {
