@@ -129,7 +129,7 @@ server.prototype.status = function(req, res, next) {
         // There's no user object, so we'll just destroy the session.
         res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));
         req.session.destroy(function(err) {
-            if (err) next(err);
+            if (err) return next(err);
             res.send({ id: null });
         });
     }
