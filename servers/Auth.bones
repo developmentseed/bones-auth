@@ -139,7 +139,7 @@ server.prototype.status = function(req, res, next) {
         res.cookie(key, '', _.defaults({ maxAge: - 864e9 }, req.session.cookie));
         res.cookie(this.args.stubKey, '', _.defaults({ maxAge: - 864e9 }, this.args.stubCookie));
         req.session.destroy(function(err) {
-            if (err) next(err);
+            if (err) return next(err);
             res.send({ id: null });
         });
     }
