@@ -10,9 +10,12 @@
     },
 
     "scripts": {
-        "test": "expresso"
+        "test": "./node_modules/.bin/mocha -R spec --ignore-leaks"
     },
     "dependencies": {
         "email": "0.2.3"
+    },
+    "devDependencies": {
+        "mocha": "1.3.x"
     }
 }
