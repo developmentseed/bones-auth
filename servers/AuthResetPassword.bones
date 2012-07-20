@@ -82,6 +82,7 @@ servers.Auth.prototype.tokenLogin = function(req, res, next) {
 };
 
 servers.Auth.prototype.resetPassword = function(req, res, next) {
+    var auth = this;
     this.session(req, res, function() {
         // Set the password to a random unguessable value to
         // prevent multiple logins with the same token.
@@ -91,6 +92,10 @@ servers.Auth.prototype.resetPassword = function(req, res, next) {
                 .digest('hex')
         }, {
             success: function() {
+                // Set a stub cookie that can also be read via HTTP
+                // (The session cookie might not). Aids in nginx configuration.
+                res.cookie(auth.args.stubKey, 'yes', auth.args.stubCookie);
+
                 req.session.regenerate(function() {
                     req.session.user = req.user;
                     req.session.user.authenticated = true;

@@ -1,4 +1,19 @@
 var assert = require('assert');
+function parseCookies(arr) {
+    var cookies = {};
+    arr.forEach(function(str) {
+        var parts = str.split(/\s*;\s*/g).map(function(str) { return str.split('='); });
+        var first = parts.shift();
+        var options = {};
+        parts.forEach(function(part) { options[part.shift()] = part.join('=') || true; });
+        cookies[first.shift()] = {
+            value: first.join('='),
+            toString: function() { return str; },
+            options: options
+        };
+    });
+    return cookies;
+}
 describe('auth', function() {
     var server;
     before(function(done) {
@@ -20,7 +35,7 @@ describe('auth', function() {
                 url: '/api/User',
                 method: 'GET'
             }, { status: 200 }, function(err, res) {
-                var body = _(JSON.parse(res.body)).sortBy(function(r) { return r.id });
+                var body = _(JSON.parse(res.body)).sortBy(function(r) { return r.id; });
                 var equals = _([
                     { id: 'root', email: 'test@example.com' },
                     { id: 'noemail' },
@@ -85,10 +100,12 @@ describe('auth', function() {
                 status: 200
             }, function(err, res) {
                 assert.ok(res.headers['set-cookie']);
+                var cookies = parseCookies(res.headers['set-cookie']);
+                assert.equal(cookies['bones.auth'].value, 'yes');
                 assert.response(server, {
                     url: '/session',
                     headers: {
-                        'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                        'cookie': 'connect.sid=' + cookies['connect.sid'].value
                     }
                 }, {
                     status: 200
@@ -100,7 +117,7 @@ describe('auth', function() {
                     assert.response(server, {
                         url: '/model',
                         headers: {
-                            'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                            'cookie': 'connect.sid=' + cookies['connect.sid'].value
                         }
                     }, {
                         status: 200
@@ -354,11 +371,13 @@ describe('auth', function() {
                 body: '{"id":"root","email":"test@example.com"}',
                 status: 200
             }, function(err, res) {
+                var cookies = parseCookies(res.headers['set-cookie']);
+                assert.equal(cookies['bones.auth'].value, 'yes');
                 assert.response(server, {
                     url: '/api/Auth',
                     method: 'GET',
                     headers: {
-                        'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                        'cookie': 'connect.sid=' + cookies['connect.sid'].value
                     }
                 }, {
                     body: '{"id":"root","email":"test@example.com"}',
@@ -376,7 +395,10 @@ describe('auth', function() {
                         body: '{"id":null}',
                         status: 200
                     }, function(err, res) {
-                        assert.ok(/^connect.sid=;/.test(res.headers['set-cookie'][0]));
+                        var cookies = parseCookies(res.headers['set-cookie']);
+                        // Test that cookies are unset.
+                        assert.equal(cookies['bones.auth'].value, '');
+                        assert.equal(cookies['connect.sid'].value, '');
                         assert.response(server, {
                             url: '/api/Auth',
                             method: 'GET'

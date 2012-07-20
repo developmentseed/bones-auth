@@ -1,4 +1,19 @@
 var assert = require('assert');
+function parseCookies(arr) {
+    var cookies = {};
+    arr.forEach(function(str) {
+        var parts = str.split(/\s*;\s*/g).map(function(str) { return str.split('='); });
+        var first = parts.shift();
+        var options = {};
+        parts.forEach(function(part) { options[part.shift()] = part.join('=') || true; });
+        cookies[first.shift()] = {
+            value: first.join('='),
+            toString: function() { return str; },
+            options: options
+        };
+    });
+    return cookies;
+}
 describe('reset password', function() {
     var server;
     var auth;
@@ -105,10 +120,11 @@ describe('reset password', function() {
                 body: 'Successfully logged in!',
                 status: 200
             }, function(err, res) {
+                var cookies = parseCookies(res.headers['set-cookie']);
                 assert.response(server, {
                     url: '/api/Auth',
                     headers: {
-                        'cookie': res.headers['set-cookie'][0].replace(/;.+$/, '')
+                        'cookie': 'connect.sid=' + cookies['connect.sid'].value
                     }
                 }, {
                     body: '{"id":"resetpassword","email":"test@example.com"}',
